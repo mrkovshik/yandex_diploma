@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"net/http"
+	"database/sql"
 
-	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
+	"github.com/mrkovshik/yandex_diploma/api/rest"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
-	"github.com/mrkovshik/yandex_diploma/internal/server"
+	"github.com/mrkovshik/yandex_diploma/internal/service"
 	"go.uber.org/zap"
 )
 
@@ -23,16 +24,14 @@ func main() {
 	if err != nil {
 		sugar.Fatal("config.GetConfigs", err)
 	}
-	srv := server.NewServer(sugar)
-	run(srv, ctx, cfg)
-}
+	db, err := sql.Open("postgres", cfg.DatabaseURI)
+	if err != nil {
+		sugar.Fatal("sql.Open", err)
+	}
+	svc := service.NewBasicService(db, cfg, sugar)
+	srv := rest.NewRestApiServer(svc)
 
-func run(s *server.Server, ctx context.Context, cfg *config.Config) {
-	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
-	r.Run()
+	if err := srv.RunServer(ctx); err != nil {
+	}
+	sugar.Fatal("RunServer", err)
 }

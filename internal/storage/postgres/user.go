@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	server "github.com/mrkovshik/yandex_diploma/internal/server/storage"
+	server "github.com/mrkovshik/yandex_diploma/internal/storage"
 )
 
 type postgresUserStorage struct {
