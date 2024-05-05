@@ -20,6 +20,17 @@ CREATE TABLE IF NOT EXISTS users (
 	created_at timestamp with time zone NOT NULL,
 	updated_at timestamp with time zone NULL,
 	CONSTRAINT users_pk PRIMARY KEY (id)
+);
+CREATE TABLE IF NOT EXISTS orders (
+	id serial NOT NULL,
+	order_number integer NOT NULL,
+	user_id integer NOT NULL,
+	uploaded_at timestamp with time zone NOT NULL,
+	updated_at timestamp with time zone NULL,
+	status varchar NULL,
+	CONSTRAINT orders_pk PRIMARY KEY (id),
+	CONSTRAINT orders_unique UNIQUE (order_number),
+	CONSTRAINT orders_users_fk FOREIGN KEY (user_id) REFERENCES users(id)
 )`
 
 type Person struct {

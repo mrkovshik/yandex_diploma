@@ -11,3 +11,8 @@ type UserStorage interface {
 	GetUserByLogin(ctx context.Context, login string) (user model.User, err error)
 	GetUserByID(ctx context.Context, id uint) (user model.User, err error)
 }
+
+type OrderStorage interface {
+	UploadOrder(ctx context.Context, userId, number uint) (bool, error)
+	GetOrderByNumber(ctx context.Context, number uint) (order model.Order, err error)
+}
