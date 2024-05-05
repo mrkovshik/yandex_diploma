@@ -9,4 +9,5 @@ import (
 type UserStorage interface {
 	AddUser(ctx context.Context, name, password string) error
 	GetUserByLogin(ctx context.Context, login string) (user model.User, err error)
+	GetUserByID(ctx context.Context, id uint) (user model.User, err error)
 }

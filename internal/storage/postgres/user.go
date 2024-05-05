@@ -38,3 +38,8 @@ func (s *postgresUserStorage) GetUserByLogin(ctx context.Context, login string) 
 	err = s.db.GetContext(ctx, &user, "SELECT * FROM users WHERE login=$1", login)
 	return
 }
+
+func (s *postgresUserStorage) GetUserByID(ctx context.Context, id uint) (user model.User, err error) {
+	err = s.db.GetContext(ctx, &user, "SELECT * FROM users WHERE id=$1", id)
+	return
+}
