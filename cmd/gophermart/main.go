@@ -4,12 +4,35 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
+
 	"github.com/mrkovshik/yandex_diploma/api/rest"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
-	"github.com/mrkovshik/yandex_diploma/internal/service"
-	"go.uber.org/zap"
 )
+
+var schema = `
+CREATE TABLE IF NOT EXISTS users (
+	id serial NOT NULL,
+	login varchar NOT NULL,
+	"password" varchar NOT NULL,
+	created_at timestamp with time zone NOT NULL,
+	updated_at timestamp with time zone NULL,
+	CONSTRAINT users_pk PRIMARY KEY (id)
+)`
+
+type Person struct {
+	FirstName string `db:"first_name"`
+	LastName  string `db:"last_name"`
+	Email     string
+}
+
+type Place struct {
+	Country string
+	City    sql.NullString
+	TelCode int
+}
 
 func main() {
 	logger, err := zap.NewDevelopment()
@@ -24,12 +47,13 @@ func main() {
 	if err != nil {
 		sugar.Fatal("config.GetConfigs", err)
 	}
-	db, err := sql.Open("postgres", cfg.DatabaseURI)
+	db, err := sqlx.Connect("postgres", cfg.DatabaseURI)
 	if err != nil {
 		sugar.Fatal("sql.Open", err)
 	}
-	svc := service.NewBasicService(db, cfg, sugar)
-	srv := rest.NewRestApiServer(svc)
+	db.MustExec(schema)
+
+	srv := rest.NewRestApiServer(db, cfg, sugar)
 
 	if err := srv.RunServer(ctx); err != nil {
 	}

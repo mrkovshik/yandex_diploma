@@ -1,5 +1,7 @@
 package service
 
+import "context"
+
 type Service interface {
-	AddUser(login, password string) error
+	Register(ctx context.Context, login, password string) error
 }

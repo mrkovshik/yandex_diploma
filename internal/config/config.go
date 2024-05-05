@@ -28,13 +28,13 @@ func (c *serverConfigBuilder) withDatabaseURI(uri string) *serverConfigBuilder {
 }
 
 func (c *serverConfigBuilder) withAccrualSystemAddress(dsn string) *serverConfigBuilder {
-	c.Config.DatabaseURI = dsn
+	c.Config.AccrualSystemAddress = dsn
 	return c
 }
 
 func (c *serverConfigBuilder) fromFlags() *serverConfigBuilder {
 	runAddress := flag.String("a", "localhost:8080", "server host and port")
-	databaseURI := flag.String("d", "postgres://yandex:yandex@localhost:5432/yandex", "db URI")
+	databaseURI := flag.String("d", "postgres://yandex:yandex@localhost:5432/yandex?sslmode=disable", "db URI")
 	accrualSystemAddress := flag.String("r", "localhost:8081", "accrual system host and port")
 	flag.Parse()
 
