@@ -2,13 +2,14 @@ package service
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
+	"github.com/mrkovshik/yandex_diploma/internal/auth"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/storage/postgres"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type basicService struct {
@@ -26,13 +27,40 @@ func NewBasicService(db *sqlx.DB, cfg *config.Config, logger *zap.SugaredLogger)
 }
 
 func (s *basicService) Register(ctx context.Context, login, password string) error {
-	hasher := sha256.New()
-	hasher.Write([]byte(password))
-	hashSum := hasher.Sum(nil)
-	hashedPassword := hex.EncodeToString(hashSum)
+	hashedPassword, err := hashPassword(password)
+	if err != nil {
+		return err
+	}
 	userStorage := postgres.NewPostgresUserStorage(s.db)
 	if err := userStorage.AddUser(ctx, login, hashedPassword); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *basicService) Login(ctx context.Context, login, password string) (string, error) {
+	userStorage := postgres.NewPostgresUserStorage(s.db)
+	user, err := userStorage.GetUserByLogin(ctx, login)
+	if err != nil {
+		return "", err
+	}
+	if !checkPasswordHash(password, user.Password) {
+		return "", app_errors.ErrInvalidPassword
+	}
+	authSrv := auth.NewAuthService(s.cfg.SecretKey, s.cfg.TokenExp)
+	token, err := authSrv.GenerateToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
+}
+
+func checkPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }

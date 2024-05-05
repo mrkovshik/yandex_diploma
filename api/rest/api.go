@@ -27,5 +27,6 @@ func (s restApiServer) RunServer(ctx context.Context) error {
 	router := gin.Default()
 	userSubRouter := router.Group("/api/user")
 	userSubRouter.POST("/register", s.RegisterHandler(ctx))
+	userSubRouter.POST("/login", s.LoginHandler(ctx))
 	return router.Run("localhost:8080")
 }

@@ -11,6 +11,8 @@ type Config struct {
 	RunAddress           string `env:"RUN_ADDRESS"`
 	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
 	DatabaseURI          string `env:"DATABASE_URI"`
+	TokenExp             int    `env:"TOKEN_EXP" envDefault:"3"`
+	SecretKey            string `env:"SECRET_KEY" envDefault:"MyBaby'sGotASecret"`
 }
 
 type serverConfigBuilder struct {
