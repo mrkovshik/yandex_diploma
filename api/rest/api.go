@@ -26,6 +26,6 @@ func NewRestApiServer(db *sqlx.DB, cfg *config.Config, logger *zap.SugaredLogger
 func (s restApiServer) RunServer(ctx context.Context) error {
 	router := gin.Default()
 	userSubRouter := router.Group("/api/user")
-	userSubRouter.POST("/register", s.RegisterHandler())
+	userSubRouter.POST("/register", s.RegisterHandler(ctx))
 	return router.Run("localhost:8080")
 }

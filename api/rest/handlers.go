@@ -2,13 +2,15 @@ package rest
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
 	"github.com/mrkovshik/yandex_diploma/internal/service"
 )
 
-func (s restApiServer) RegisterHandler() func(c *gin.Context) {
+func (s restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var addUserReq addUserRequest
 		basicService := service.NewBasicService(s.db, s.cfg, s.logger)
@@ -17,9 +19,12 @@ func (s restApiServer) RegisterHandler() func(c *gin.Context) {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
-		ctx := context.Background()
 		if err := basicService.Register(ctx, addUserReq.Login, addUserReq.Password); err != nil {
-			s.logger.Error("AddUser", err)
+			if errors.Is(err, app_errors.ErrUserAlreadyExists) {
+				s.logger.Error("Register: ", err)
+				c.IndentedJSON(http.StatusConflict, gin.H{"error": err.Error()})
+			}
+			s.logger.Error("Register: ", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
