@@ -13,6 +13,6 @@ type UserStorage interface {
 }
 
 type OrderStorage interface {
-	UploadOrder(ctx context.Context, userId, number uint) (bool, error)
+	UploadOrder(ctx context.Context, userId, number uint) error
 	GetOrderByNumber(ctx context.Context, number uint) (order model.Order, err error)
 }

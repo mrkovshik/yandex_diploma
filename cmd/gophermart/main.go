@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 CREATE TABLE IF NOT EXISTS orders (
 	id serial NOT NULL,
-	order_number integer NOT NULL,
+	order_number bigint NOT NULL,
 	user_id integer NOT NULL,
 	uploaded_at timestamp with time zone NOT NULL,
 	updated_at timestamp with time zone NULL,

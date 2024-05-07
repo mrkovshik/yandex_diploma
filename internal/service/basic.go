@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
@@ -53,6 +55,25 @@ func (s *basicService) Login(ctx context.Context, login, password string) (strin
 		return "", err
 	}
 	return token, nil
+}
+
+func (s *basicService) UploadOrder(ctx context.Context, number, userId uint) (bool, error) {
+	orderStorage := postgres.NewPostgresOrderStorage(s.db)
+	order, err := orderStorage.GetOrderByNumber(ctx, number)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return false, err
+		}
+		if err1 := orderStorage.UploadOrder(ctx, userId, number); err != nil {
+			return false, err1
+		}
+		return false, nil
+	}
+	if order.UserId != userId {
+		return false, app_errors.ErrOrderIsUploadedByAnotherUser
+	}
+	return true, nil
+
 }
 
 func hashPassword(password string) (string, error) {

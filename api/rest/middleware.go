@@ -33,6 +33,6 @@ func (s restApiServer) Auth(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("claims", claims)
+		c.Set("userId", claims.UserID)
 	}
 }
