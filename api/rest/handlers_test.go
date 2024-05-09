@@ -12,8 +12,7 @@ import (
 )
 
 func Test_getOrderNumberFromContext(t *testing.T) {
-	type args struct {
-	}
+
 	tests := []struct {
 		name    string
 		number  string
