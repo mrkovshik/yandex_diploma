@@ -6,6 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/mrkovshik/yandex_diploma/internal/storage/postgres"
 	"go.uber.org/zap"
 
 	"github.com/mrkovshik/yandex_diploma/api/rest"
@@ -63,8 +64,9 @@ func main() {
 		sugar.Fatal("sql.Open", err)
 	}
 	db.MustExec(schema)
-
-	srv := rest.NewRestApiServer(db, cfg, sugar)
+	userStorage := postgres.NewUserStorage(db)
+	orderStorage := postgres.NewOrderStorage(db)
+	srv := rest.NewRestApiServer(userStorage, orderStorage, cfg, sugar)
 
 	if err := srv.RunServer(ctx); err != nil {
 	}

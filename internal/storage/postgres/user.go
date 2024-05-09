@@ -9,14 +9,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
-	server "github.com/mrkovshik/yandex_diploma/internal/storage"
+	server "github.com/mrkovshik/yandex_diploma/internal/service"
 )
 
 type postgresUserStorage struct {
 	db *sqlx.DB
 }
 
-func NewPostgresUserStorage(db *sqlx.DB) server.UserStorage {
+func NewUserStorage(db *sqlx.DB) server.UserStorage {
 	return &postgresUserStorage{db: db}
 }
 

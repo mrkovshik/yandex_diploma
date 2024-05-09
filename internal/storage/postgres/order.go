@@ -6,14 +6,14 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
-	server "github.com/mrkovshik/yandex_diploma/internal/storage"
+	server "github.com/mrkovshik/yandex_diploma/internal/service"
 )
 
 type postgresOrderStorage struct {
 	db *sqlx.DB
 }
 
-func NewPostgresOrderStorage(db *sqlx.DB) server.OrderStorage {
+func NewOrderStorage(db *sqlx.DB) server.OrderStorage {
 	return &postgresOrderStorage{db: db}
 }
 
