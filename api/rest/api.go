@@ -4,25 +4,24 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
 	"github.com/mrkovshik/yandex_diploma/api"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
-	"go.uber.org/zap"
 )
 
 type restApiServer struct {
-	userStorage  loyalty.UserStorage
-	orderStorage loyalty.OrderStorage
-	cfg          *config.Config
-	logger       *zap.SugaredLogger
+	storage loyalty.Storage
+	cfg     *config.Config
+	logger  *zap.SugaredLogger
 }
 
-func NewRestApiServer(userStorage loyalty.UserStorage, orderStorage loyalty.OrderStorage, cfg *config.Config, logger *zap.SugaredLogger) api.Server {
+func NewRestApiServer(storage loyalty.Storage, cfg *config.Config, logger *zap.SugaredLogger) api.Server {
 	return restApiServer{
-		userStorage:  userStorage,
-		orderStorage: orderStorage,
-		cfg:          cfg,
-		logger:       logger,
+		storage: storage,
+		cfg:     cfg,
+		logger:  logger,
 	}
 }
 func (s restApiServer) RunServer(ctx context.Context) error {

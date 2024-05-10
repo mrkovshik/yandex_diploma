@@ -4,15 +4,15 @@
 
 ### 1. ER-Диаграмма
 
-![img.png](../../internal/media/er_diagram.png)
+![img.jpg](../../internal/media/er_diagram.jpg)
 
 ### 2. Схема взаимодействия
 
-![img.png](../../internal/media/interactions.jpg)
+![img.jpg](../../internal/media/interactions.jpg)
 
 ### 3. Диаграмма последовательности для начисления баллов
 
-![img.png](../../internal/media/sequence 1.jpg)
+![img.jpg](../../internal/media/sequence 1.jpg)
 
 Последовательность действий:
  1. Пользователь присылает запрос на добавление заказа в систему лояльности (далее СЛ)
@@ -29,7 +29,7 @@
 
 ### 4. Диаграмма последовательности для списания баллов
 
-![img.png](../../internal/media/sequence withdrawal.jpg)
+![img.jpg](../../internal/media/sequence withdrawal.jpg)
 
 Последовательность действий:
 1. Пользователь присылает запрос в СЛ на списание баллов в счет оплаты заказа 

@@ -34,10 +34,10 @@ func Test_service_GetOrderScore(t *testing.T) {
 		}
 	}))
 	defer mockServer.Close()
-	s := NewCountingService(mockServer.URL[7:16], mockServer.URL[17:])
+	s := NewCountingService(mockServer.URL[7:])
 	tests := []struct {
 		name        string
-		orderNumber int
+		orderNumber uint
 		want        Response
 		err         error
 	}{
@@ -65,7 +65,7 @@ func Test_service_GetOrderScore(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.GetOrderScore(tt.orderNumber)
+			got, err := s.GetOrderAccrual(tt.orderNumber)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, errors.Is(err, tt.err), true)
 		})

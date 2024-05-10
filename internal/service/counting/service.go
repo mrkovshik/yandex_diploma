@@ -1,5 +1,5 @@
 package counting
 
 type Service interface {
-	GetOrderScore(orderNumber int) (Response, error)
+	GetOrderAccrual(orderNumber uint) (Response, error)
 }

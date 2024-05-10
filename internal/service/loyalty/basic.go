@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/mrkovshik/yandex_diploma/internal/model"
+	"github.com/mrkovshik/yandex_diploma/internal/service/counting"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
@@ -14,18 +16,16 @@ import (
 )
 
 type basicService struct {
-	userStorage  UserStorage
-	orderStorage OrderStorage
-	cfg          *config.Config
-	logger       *zap.SugaredLogger
+	storage Storage
+	cfg     *config.Config
+	logger  *zap.SugaredLogger
 }
 
-func NewBasicService(userStorage UserStorage, orderStorage OrderStorage, cfg *config.Config, logger *zap.SugaredLogger) Service {
+func NewBasicService(storage Storage, cfg *config.Config, logger *zap.SugaredLogger) Service {
 	return &basicService{
-		userStorage:  userStorage,
-		orderStorage: orderStorage,
-		cfg:          cfg,
-		logger:       logger,
+		storage: storage,
+		cfg:     cfg,
+		logger:  logger,
 	}
 }
 
@@ -34,14 +34,14 @@ func (s *basicService) Register(ctx context.Context, login, password string) err
 	if err != nil {
 		return err
 	}
-	if err := s.userStorage.AddUser(ctx, login, hashedPassword); err != nil {
+	if err := s.storage.AddUser(ctx, login, hashedPassword); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (s *basicService) Login(ctx context.Context, login, password string) (string, error) {
-	user, err := s.userStorage.GetUserByLogin(ctx, login)
+	user, err := s.storage.GetUserByLogin(ctx, login)
 	if err != nil {
 		return "", err
 	}
@@ -57,12 +57,12 @@ func (s *basicService) Login(ctx context.Context, login, password string) (strin
 }
 
 func (s *basicService) UploadOrder(ctx context.Context, number, userId uint) (bool, error) {
-	order, err := s.orderStorage.GetOrderByNumber(ctx, number)
+	order, err := s.storage.GetOrderByNumber(ctx, number)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return false, err
 		}
-		if err1 := s.orderStorage.UploadOrder(ctx, userId, number); err != nil {
+		if err1 := s.storage.UploadOrder(ctx, userId, number); err != nil {
 			return false, err1
 		}
 		return false, nil
@@ -72,6 +72,28 @@ func (s *basicService) UploadOrder(ctx context.Context, number, userId uint) (bo
 	}
 	return true, nil
 
+}
+
+func (s *basicService) UpdateOrderAccrual(ctx context.Context, orderNumber uint) error {
+	countingSrv := counting.NewCountingService(s.cfg.AccrualSystemAddress)
+	res, err := countingSrv.GetOrderAccrual(orderNumber)
+	if err != nil {
+		return err
+	}
+	switch res.Status {
+	case model.CountingStateInvalid:
+		if err := s.storage.SetOrderStatus(ctx, orderNumber, model.OrderStateInvalid, nil); err != nil {
+			return err
+		}
+	case model.CountingStateProcessing, model.CountingStateRegistered:
+		if err := s.storage.SetOrderStatus(ctx, orderNumber, model.OrderStateProcessing, nil); err != nil {
+			return err
+		}
+	case model.CountingStateProcessed:
+
+	}
+
+	return nil
 }
 
 func hashPassword(password string) (string, error) {

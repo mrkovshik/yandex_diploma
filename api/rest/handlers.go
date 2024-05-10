@@ -20,7 +20,7 @@ var validate = validator.New(validator.WithRequiredStructEnabled())
 func (s restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var user model.User
-		basicService := loyalty.NewBasicService(s.userStorage, s.orderStorage, s.cfg, s.logger)
+		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
 		if err := c.BindJSON(&user); err != nil {
 			s.logger.Error("BindJSON", err)
 			c.AbortWithStatus(http.StatusBadRequest)
@@ -42,7 +42,7 @@ func (s restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context)
 func (s restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var user model.User
-		basicService := loyalty.NewBasicService(s.userStorage, s.orderStorage, s.cfg, s.logger)
+		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
 		if err := c.BindJSON(&user); err != nil {
 			s.logger.Error("BindJSON", err)
 			c.AbortWithStatus(http.StatusBadRequest)
@@ -64,7 +64,7 @@ func (s restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 
 func (s restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		basicService := loyalty.NewBasicService(s.userStorage, s.orderStorage, s.cfg, s.logger)
+		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
 
 		orderNumber, err := getOrderNumberFromContext(c)
 		if err != nil {

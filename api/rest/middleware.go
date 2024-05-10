@@ -24,7 +24,7 @@ func (s restApiServer) Auth(ctx context.Context) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "Unauthorized")
 			return
 		}
-		if _, err := s.userStorage.GetUserByID(ctx, claims.UserID); err != nil {
+		if _, err := s.storage.GetUserByID(ctx, claims.UserID, nil); err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "Unauthorized")
 			return
 		}

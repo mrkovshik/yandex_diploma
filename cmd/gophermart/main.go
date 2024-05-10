@@ -64,9 +64,8 @@ func main() {
 		sugar.Fatal("sql.Open", err)
 	}
 	db.MustExec(schema)
-	userStorage := postgres.NewUserStorage(db)
-	orderStorage := postgres.NewOrderStorage(db)
-	srv := rest.NewRestApiServer(userStorage, orderStorage, cfg, sugar)
+	storage := postgres.NewStorage(db)
+	srv := rest.NewRestApiServer(storage, cfg, sugar)
 
 	if err := srv.RunServer(ctx); err != nil {
 	}
