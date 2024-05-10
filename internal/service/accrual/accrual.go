@@ -1,4 +1,4 @@
-package counting
+package accrual
 
 import (
 	"encoding/json"
@@ -16,13 +16,13 @@ type (
 		address string
 	}
 	Response struct {
-		Order   int                 `json:"order"`
-		Status  model.CountingState `json:"status"`
-		Accrual int                 `json:"accrual"`
+		Order   int                `json:"order"`
+		Status  model.AccrualState `json:"status"`
+		Accrual int                `json:"accrual"`
 	}
 )
 
-func NewCountingService(address string) Service {
+func NewAccrualService(address string) Service {
 	return service{
 		address: address,
 	}

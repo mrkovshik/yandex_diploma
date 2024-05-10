@@ -1,10 +1,10 @@
 package model
 
-type CountingState string
+type AccrualState string
 
 const (
-	CountingStateRegistered = CountingState("REGISTERED")
-	CountingStateProcessing = CountingState("PROCESSING")
-	CountingStateInvalid    = CountingState("INVALID")
-	CountingStateProcessed  = CountingState("PROCESSED")
+	AccrualStateRegistered = AccrualState("REGISTERED")
+	AccrualStateProcessing = AccrualState("PROCESSING")
+	AccrualStateInvalid    = AccrualState("INVALID")
+	AccrualStateProcessed  = AccrualState("PROCESSED")
 )

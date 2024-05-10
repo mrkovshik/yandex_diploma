@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"github.com/mrkovshik/yandex_diploma/internal/model"
-	"github.com/mrkovshik/yandex_diploma/internal/service/counting"
+	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
@@ -56,41 +56,48 @@ func (s *basicService) Login(ctx context.Context, login, password string) (strin
 	return token, nil
 }
 
-func (s *basicService) UploadOrder(ctx context.Context, number, userId uint) (bool, error) {
-	order, err := s.storage.GetOrderByNumber(ctx, number)
+func (s *basicService) UploadOrder(ctx context.Context, orderNumber, userId uint) (bool, error) {
+	order, err := s.storage.GetOrderByNumber(ctx, orderNumber)
+
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return false, err
 		}
-		if err1 := s.storage.UploadOrder(ctx, userId, number); err != nil {
-			return false, err1
+		if err := s.storage.UploadOrder(ctx, userId, orderNumber); err != nil {
+			return false, err
 		}
-		return false, nil
+		if err := s.UpdateOrderAccrual(ctx, orderNumber); err != nil {
+			return false, err
+		}
 	}
+
 	if order.UserId != userId {
 		return false, app_errors.ErrOrderIsUploadedByAnotherUser
 	}
 	return true, nil
-
 }
 
 func (s *basicService) UpdateOrderAccrual(ctx context.Context, orderNumber uint) error {
-	countingSrv := counting.NewCountingService(s.cfg.AccrualSystemAddress)
+	countingSrv := accrual.NewAccrualService(s.cfg.AccrualSystemAddress)
 	res, err := countingSrv.GetOrderAccrual(orderNumber)
 	if err != nil {
 		return err
 	}
 	switch res.Status {
-	case model.CountingStateInvalid:
+	case model.AccrualStateInvalid:
 		if err := s.storage.SetOrderStatus(ctx, orderNumber, model.OrderStateInvalid, nil); err != nil {
 			return err
 		}
-	case model.CountingStateProcessing, model.CountingStateRegistered:
+	case model.AccrualStateProcessing, model.AccrualStateRegistered:
 		if err := s.storage.SetOrderStatus(ctx, orderNumber, model.OrderStateProcessing, nil); err != nil {
 			return err
 		}
-	case model.CountingStateProcessed:
-
+	case model.AccrualStateProcessed:
+		if err := s.storage.FinalizeOrderAndUpdateBalance(ctx, orderNumber, res.Accrual); err != nil {
+			return err
+		}
+	default:
+		return errors.New("invalid accrual state")
 	}
 
 	return nil

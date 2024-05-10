@@ -1,4 +1,4 @@
-package counting
+package accrual
 
 import (
 	"encoding/json"
@@ -34,7 +34,7 @@ func Test_service_GetOrderScore(t *testing.T) {
 		}
 	}))
 	defer mockServer.Close()
-	s := NewCountingService(mockServer.URL[7:])
+	s := NewAccrualService(mockServer.URL[7:])
 	tests := []struct {
 		name        string
 		orderNumber uint

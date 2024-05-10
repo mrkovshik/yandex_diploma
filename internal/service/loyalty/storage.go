@@ -17,4 +17,5 @@ type Storage interface {
 	GetOrderByNumber(ctx context.Context, orderNumber uint) (order model.Order, err error)
 	SetOrderAccrual(ctx context.Context, orderNumber uint, amount int, tx *sqlx.Tx) error
 	SetOrderStatus(ctx context.Context, orderNumber uint, status model.OrderState, tx *sqlx.Tx) error
+	FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber uint, amount int) error
 }

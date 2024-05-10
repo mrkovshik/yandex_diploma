@@ -59,13 +59,13 @@ func (s *Storage) SetOrderStatus(ctx context.Context, orderNumber uint, status m
 	return nil
 }
 
-func (s *Storage) FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber uint, amount int, status model.OrderState) error {
+func (s *Storage) FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber uint, amount int) error {
 	tx, err := s.db.Beginx()
 	defer tx.Rollback() //nolint:all
 	if err != nil {
 		return err
 	}
-	if err := s.SetOrderStatus(ctx, orderNumber, status, tx); err != nil {
+	if err := s.SetOrderStatus(ctx, orderNumber, model.OrderStateProcessed, tx); err != nil {
 		return err
 	}
 	if err := s.SetOrderAccrual(ctx, orderNumber, amount, tx); err != nil {
