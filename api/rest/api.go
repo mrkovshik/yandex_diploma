@@ -6,18 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mrkovshik/yandex_diploma/api"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
-	"github.com/mrkovshik/yandex_diploma/internal/service"
+	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 	"go.uber.org/zap"
 )
 
 type restApiServer struct {
-	userStorage  service.UserStorage
-	orderStorage service.OrderStorage
+	userStorage  loyalty.UserStorage
+	orderStorage loyalty.OrderStorage
 	cfg          *config.Config
 	logger       *zap.SugaredLogger
 }
 
-func NewRestApiServer(userStorage service.UserStorage, orderStorage service.OrderStorage, cfg *config.Config, logger *zap.SugaredLogger) api.Server {
+func NewRestApiServer(userStorage loyalty.UserStorage, orderStorage loyalty.OrderStorage, cfg *config.Config, logger *zap.SugaredLogger) api.Server {
 	return restApiServer{
 		userStorage:  userStorage,
 		orderStorage: orderStorage,

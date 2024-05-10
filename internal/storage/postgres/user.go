@@ -9,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
-	server "github.com/mrkovshik/yandex_diploma/internal/service"
+	server "github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 )
 
 type postgresUserStorage struct {

@@ -9,10 +9,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 
 	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
-	"github.com/mrkovshik/yandex_diploma/internal/service"
 )
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
@@ -20,7 +20,7 @@ var validate = validator.New(validator.WithRequiredStructEnabled())
 func (s restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var user model.User
-		basicService := service.NewBasicService(s.userStorage, s.orderStorage, s.cfg, s.logger)
+		basicService := loyalty.NewBasicService(s.userStorage, s.orderStorage, s.cfg, s.logger)
 		if err := c.BindJSON(&user); err != nil {
 			s.logger.Error("BindJSON", err)
 			c.AbortWithStatus(http.StatusBadRequest)
@@ -42,7 +42,7 @@ func (s restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context)
 func (s restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var user model.User
-		basicService := service.NewBasicService(s.userStorage, s.orderStorage, s.cfg, s.logger)
+		basicService := loyalty.NewBasicService(s.userStorage, s.orderStorage, s.cfg, s.logger)
 		if err := c.BindJSON(&user); err != nil {
 			s.logger.Error("BindJSON", err)
 			c.AbortWithStatus(http.StatusBadRequest)
@@ -64,7 +64,7 @@ func (s restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 
 func (s restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		basicService := service.NewBasicService(s.userStorage, s.orderStorage, s.cfg, s.logger)
+		basicService := loyalty.NewBasicService(s.userStorage, s.orderStorage, s.cfg, s.logger)
 
 		orderNumber, err := getOrderNumberFromContext(c)
 		if err != nil {

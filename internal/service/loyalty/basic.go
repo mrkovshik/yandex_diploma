@@ -1,15 +1,16 @@
-package service
+package loyalty
 
 import (
 	"context"
 	"database/sql"
 	"errors"
 
+	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
 	"github.com/mrkovshik/yandex_diploma/internal/auth"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
-	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type basicService struct {
@@ -19,10 +20,10 @@ type basicService struct {
 	logger       *zap.SugaredLogger
 }
 
-func NewBasicService(usrStrg UserStorage, ordrStrg OrderStorage, cfg *config.Config, logger *zap.SugaredLogger) Service {
+func NewBasicService(userStorage UserStorage, orderStorage OrderStorage, cfg *config.Config, logger *zap.SugaredLogger) Service {
 	return &basicService{
-		userStorage:  usrStrg,
-		orderStorage: ordrStrg,
+		userStorage:  userStorage,
+		orderStorage: orderStorage,
 		cfg:          cfg,
 		logger:       logger,
 	}
