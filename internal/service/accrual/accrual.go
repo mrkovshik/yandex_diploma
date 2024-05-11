@@ -16,7 +16,7 @@ type (
 		address string
 	}
 	Response struct {
-		Order   int                `json:"order"`
+		Order   uint               `json:"order" uri:"order" binding:"required"`
 		Status  model.AccrualState `json:"status"`
 		Accrual int                `json:"accrual"`
 	}

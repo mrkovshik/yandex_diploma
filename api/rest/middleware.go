@@ -10,7 +10,7 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/auth"
 )
 
-func (s restApiServer) Auth(ctx context.Context) gin.HandlerFunc {
+func (s *restApiServer) Auth(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, found := strings.CutPrefix(c.GetHeader("Authorization"), "Bearer ")
 		if !found {

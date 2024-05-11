@@ -17,7 +17,7 @@ import (
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
 
-func (s restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context) {
+func (s *restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var user model.User
 		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
@@ -39,7 +39,7 @@ func (s restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context)
 	}
 }
 
-func (s restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
+func (s *restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var user model.User
 		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
@@ -62,7 +62,7 @@ func (s restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 	}
 }
 
-func (s restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Context) {
+func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
 

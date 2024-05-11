@@ -18,13 +18,13 @@ type restApiServer struct {
 }
 
 func NewRestApiServer(storage loyalty.Storage, cfg *config.Config, logger *zap.SugaredLogger) api.Server {
-	return restApiServer{
+	return &restApiServer{
 		storage: storage,
 		cfg:     cfg,
 		logger:  logger,
 	}
 }
-func (s restApiServer) RunServer(ctx context.Context) error {
+func (s *restApiServer) RunServer(ctx context.Context) error {
 	router := gin.Default()
 	userSubRouter := router.Group("/api/user")
 	userSubRouter.POST("/register", s.RegisterHandler(ctx))
