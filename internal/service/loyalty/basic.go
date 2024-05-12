@@ -66,9 +66,7 @@ func (s *basicService) UploadOrder(ctx context.Context, orderNumber, userId uint
 		if err := s.storage.UploadOrder(ctx, userId, orderNumber); err != nil {
 			return false, err
 		}
-		if err := s.UpdateOrderAccrual(ctx, orderNumber); err != nil {
-			return false, err
-		}
+		return false, nil
 	}
 
 	if order.UserId != userId {
@@ -85,11 +83,11 @@ func (s *basicService) UpdateOrderAccrual(ctx context.Context, orderNumber uint)
 	}
 	switch res.Status {
 	case model.AccrualStateInvalid:
-		if err := s.storage.SetOrderStatus(ctx, orderNumber, model.OrderStateInvalid, nil); err != nil {
+		if err := s.storage.SetOrderStatus(ctx, orderNumber, model.OrderStateInvalid); err != nil {
 			return err
 		}
 	case model.AccrualStateProcessing, model.AccrualStateRegistered:
-		if err := s.storage.SetOrderStatus(ctx, orderNumber, model.OrderStateProcessing, nil); err != nil {
+		if err := s.storage.SetOrderStatus(ctx, orderNumber, model.OrderStateProcessing); err != nil {
 			return err
 		}
 	case model.AccrualStateProcessed:

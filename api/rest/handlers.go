@@ -3,6 +3,7 @@ package rest
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 	"strconv"
@@ -26,6 +27,12 @@ func (s *restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
+		if err := validate.Struct(user); err != nil {
+			s.logger.Error("validate.Struct", err)
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
 		if err := basicService.Register(ctx, user.Login, user.Password); err != nil {
 			if errors.Is(err, app_errors.ErrUserAlreadyExists) {
 				s.logger.Error("Register: ", err)
@@ -48,12 +55,19 @@ func (s *restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
+		if err := validate.Struct(user); err != nil {
+			s.logger.Error("validate.Struct", err)
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
 		token, err := basicService.Login(ctx, user.Login, user.Password)
 		if err != nil {
-			if errors.Is(err, app_errors.ErrInvalidPassword) {
+			if errors.Is(err, app_errors.ErrInvalidPassword) || errors.Is(err, sql.ErrNoRows) {
 				s.logger.Error("Register: ", err)
 				c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			}
+
 			s.logger.Error("Register: ", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return

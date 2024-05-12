@@ -16,9 +16,10 @@ const (
 
 type Order struct {
 	ID          uint         `db:"id"`
-	OrderNumber string       `db:"order_number"`
+	OrderNumber uint         `db:"order_number"`
 	UserId      uint         `db:"user_id"`
-	Status      string       `db:"status"`
+	Status      OrderState   `db:"status"`
 	UploadedAt  time.Time    `db:"uploaded_at"`
 	UpdatedAt   sql.NullTime `db:"updated_at"`
+	Accrual     int          `db:"accrual"`
 }

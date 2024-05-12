@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 )
@@ -23,7 +24,7 @@ var states = []model.AccrualState{
 	model.AccrualStateProcessed,
 }
 
-func Run() {
+func Run(cfg *config.Config) {
 	r := gin.Default()
 	r.GET("api/orders/:order", func(c *gin.Context) {
 		var resp accrual.Response
@@ -51,6 +52,6 @@ func Run() {
 		}
 
 	})
-	r.Run("localhost:8081")
+	r.Run(cfg.AccrualSystemAddress)
 
 }
