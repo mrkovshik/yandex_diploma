@@ -1,7 +1,6 @@
 package model
 
 import (
-	"database/sql"
 	"time"
 )
 
@@ -15,11 +14,10 @@ const (
 )
 
 type Order struct {
-	ID          uint         `db:"id"`
-	OrderNumber uint         `db:"order_number"`
-	UserId      uint         `db:"user_id"`
-	Status      OrderState   `db:"status"`
-	UploadedAt  time.Time    `db:"uploaded_at"`
-	UpdatedAt   sql.NullTime `db:"updated_at"`
-	Accrual     int          `db:"accrual"`
+	ID          uint       `db:"id" json:"-"`
+	OrderNumber uint       `db:"order_number" json:"number"`
+	UserId      uint       `db:"user_id" json:"-"`
+	Status      OrderState `db:"status" json:"status"`
+	UploadedAt  time.Time  `db:"uploaded_at" json:"uploaded_at"`
+	Accrual     int        `db:"accrual" json:"accrual,omitempty"`
 }

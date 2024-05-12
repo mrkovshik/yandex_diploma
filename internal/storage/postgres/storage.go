@@ -86,6 +86,11 @@ func (s *Storage) GetUserByID(ctx context.Context, id uint) (user model.User, er
 	return
 }
 
+func (s *Storage) GetOrdersByUserID(ctx context.Context, userId uint) (orders []model.Order, err error) {
+	err = s.db.SelectContext(ctx, &orders, "SELECT * FROM orders WHERE user_id=$1", userId)
+	return
+}
+
 func (s *Storage) updateUserBalanceTx(ctx context.Context, userId uint, amount int, tx *sqlx.Tx) error {
 
 	user, err := s.getUserByIDTx(ctx, userId, tx)
@@ -94,7 +99,7 @@ func (s *Storage) updateUserBalanceTx(ctx context.Context, userId uint, amount i
 	}
 	newBalance := user.Balance + amount
 
-	if _, err := tx.ExecContext(ctx, "UPDATE users SET balance = $1 WHERE user_id = $2;", newBalance, userId); err != nil {
+	if _, err := tx.ExecContext(ctx, "UPDATE users SET balance = $1 WHERE id = $2;", newBalance, userId); err != nil {
 		return err
 	}
 	return nil

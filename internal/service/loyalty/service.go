@@ -2,6 +2,8 @@ package loyalty
 
 import (
 	"context"
+
+	"github.com/mrkovshik/yandex_diploma/internal/model"
 )
 
 type Service interface {
@@ -9,4 +11,5 @@ type Service interface {
 	Login(ctx context.Context, login, password string) (string, error)
 	UploadOrder(ctx context.Context, number, userId uint) (bool, error)
 	UpdateOrderAccrual(ctx context.Context, orderNumber uint) error
+	GetUserOrders(ctx context.Context, userId uint) ([]model.Order, error)
 }

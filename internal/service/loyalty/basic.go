@@ -101,6 +101,14 @@ func (s *basicService) UpdateOrderAccrual(ctx context.Context, orderNumber uint)
 	return nil
 }
 
+func (s *basicService) GetUserOrders(ctx context.Context, userId uint) ([]model.Order, error) {
+	orders, err := s.storage.GetOrdersByUserID(ctx, userId)
+	if err != nil {
+		return []model.Order{}, err
+	}
+	return orders, nil
+}
+
 func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err

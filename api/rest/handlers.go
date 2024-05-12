@@ -87,6 +87,11 @@ func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 			return
 		}
 		userId, err := getUserIdFromContext(c)
+		if err != nil {
+			s.logger.Errorf("getUserIdFromContext: %v", err)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
+			return
+		}
 		exist, err := basicService.UploadOrder(ctx, orderNumber, userId)
 		if err != nil {
 			if errors.Is(err, app_errors.ErrOrderIsUploadedByAnotherUser) {
@@ -102,6 +107,28 @@ func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 			c.IndentedJSON(http.StatusAccepted, gin.H{"message": "order is already uploaded"})
 		}
 		c.IndentedJSON(http.StatusOK, gin.H{"message": "order successfully uploaded"})
+	}
+}
+
+func (s *restApiServer) GetOrders(ctx context.Context) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
+		userId, err := getUserIdFromContext(c)
+		if err != nil {
+			s.logger.Errorf("getUserIdFromContext: %v", err)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
+			return
+		}
+		orders, err := basicService.GetUserOrders(ctx, userId)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				c.IndentedJSON(http.StatusNoContent, gin.H{"message": "no orders found"})
+			}
+			s.logger.Error("GetOrdersByUserID", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		c.IndentedJSON(http.StatusOK, orders)
 	}
 }
 

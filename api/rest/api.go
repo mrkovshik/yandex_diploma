@@ -30,5 +30,6 @@ func (s *restApiServer) RunServer(ctx context.Context) error {
 	userSubRouter.POST("/register", s.RegisterHandler(ctx))
 	userSubRouter.POST("/login", s.LoginHandler(ctx))
 	userSubRouter.POST("/orders", s.Auth(ctx), s.UploadOrderHandler(ctx))
+	userSubRouter.GET("/orders", s.Auth(ctx), s.GetOrders(ctx))
 	return router.Run("localhost:8080")
 }
