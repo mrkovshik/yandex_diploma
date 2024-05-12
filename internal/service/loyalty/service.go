@@ -12,4 +12,5 @@ type Service interface {
 	UploadOrder(ctx context.Context, number, userId uint) (bool, error)
 	UpdateOrderAccrual(ctx context.Context, orderNumber uint) error
 	GetUserOrders(ctx context.Context, userId uint) ([]model.Order, error)
+	UpdatePendingOrders(ctx context.Context) error
 }

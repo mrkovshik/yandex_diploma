@@ -15,17 +15,19 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 )
 
+const workersQty = 2
+
 type basicService struct {
 	storage Storage
 	cfg     *config.Config
-	logger  *zap.SugaredLogger
+	Logger  *zap.SugaredLogger
 }
 
 func NewBasicService(storage Storage, cfg *config.Config, logger *zap.SugaredLogger) Service {
 	return &basicService{
 		storage: storage,
 		cfg:     cfg,
-		logger:  logger,
+		Logger:  logger,
 	}
 }
 
@@ -86,18 +88,38 @@ func (s *basicService) UpdateOrderAccrual(ctx context.Context, orderNumber uint)
 		if err := s.storage.SetOrderStatus(ctx, orderNumber, model.OrderStateInvalid); err != nil {
 			return err
 		}
+		s.Logger.Debugf("updated order %v state = INVALID", orderNumber)
 	case model.AccrualStateProcessing, model.AccrualStateRegistered:
 		if err := s.storage.SetOrderStatus(ctx, orderNumber, model.OrderStateProcessing); err != nil {
 			return err
 		}
+		s.Logger.Debugf("updated order %v state = PROCESSING", orderNumber)
 	case model.AccrualStateProcessed:
 		if err := s.storage.FinalizeOrderAndUpdateBalance(ctx, orderNumber, res.Accrual); err != nil {
 			return err
 		}
+		s.Logger.Debugf("updated order %v with amount = %v and state = PROCESSED", orderNumber, res.Accrual)
 	default:
 		return errors.New("invalid accrual state")
 	}
 
+	return nil
+}
+
+func (s *basicService) UpdatePendingOrders(ctx context.Context) error {
+	s.Logger.Debug("updating orders started")
+	orders, err := s.storage.GetPendingOrders(ctx)
+	if err != nil {
+		return err
+	}
+	jobs := make(chan uint, len(orders))
+	for w := 1; w <= workersQty; w++ {
+		go s.worker(ctx, w, jobs)
+	}
+	for _, id := range orders {
+		jobs <- id
+	}
+	close(jobs)
 	return nil
 }
 
@@ -117,4 +139,14 @@ func hashPassword(password string) (string, error) {
 func checkPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func (s *basicService) worker(ctx context.Context, workerId int, jobs <-chan uint) {
+	for orderNumber := range jobs {
+
+		if err := s.UpdateOrderAccrual(ctx, orderNumber); err != nil {
+			s.Logger.Errorf("failed to update order #%v by worker #%v", orderNumber, workerId)
+			return
+		}
+	}
 }

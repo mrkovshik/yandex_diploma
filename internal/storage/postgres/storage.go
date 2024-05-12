@@ -53,7 +53,7 @@ func (s *Storage) FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber
 		return err
 	}
 
-	if err := s.updateUserBalanceTx(ctx, orderNumber, amount, tx); err != nil {
+	if err := s.updateUserBalanceByOrderNumberTx(ctx, orderNumber, amount, tx); err != nil {
 		return err
 	}
 	if err := tx.Commit(); err != nil {
@@ -91,24 +91,31 @@ func (s *Storage) GetOrdersByUserID(ctx context.Context, userId uint) (orders []
 	return
 }
 
-func (s *Storage) updateUserBalanceTx(ctx context.Context, userId uint, amount int, tx *sqlx.Tx) error {
+func (s *Storage) GetPendingOrders(ctx context.Context) (orders []uint, err error) {
+	err = s.db.SelectContext(ctx, &orders, "SELECT order_number FROM orders WHERE status IN ($1, $2)", model.OrderStateNew, model.OrderStateProcessing)
+	return
+}
 
-	user, err := s.getUserByIDTx(ctx, userId, tx)
+func (s *Storage) updateUserBalanceByOrderNumberTx(ctx context.Context, orderNumber uint, amount int, tx *sqlx.Tx) error {
+
+	user, err := s.getUserByOrderNumberTx(ctx, orderNumber, tx)
 	if err != nil {
 		return err
 	}
 	newBalance := user.Balance + amount
 
-	if _, err := tx.ExecContext(ctx, "UPDATE users SET balance = $1 WHERE id = $2;", newBalance, userId); err != nil {
+	if _, err := tx.ExecContext(ctx, "UPDATE users SET balance = $1 WHERE id = $2;", newBalance, user.ID); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (s *Storage) setOrderStatusTx(ctx context.Context, orderNumber uint, status model.OrderState, tx *sqlx.Tx) error {
-	if _, err := tx.ExecContext(ctx, "UPDATE orders SET status = $1 WHERE order_number = $2;", status, orderNumber); err != nil {
+	_, err := tx.ExecContext(ctx, "UPDATE orders SET status = $1 WHERE order_number = $2;", status, orderNumber)
+	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -118,7 +125,7 @@ func (s *Storage) setOrderAccrualTx(ctx context.Context, orderNumber uint, amoun
 	}
 	return nil
 }
-func (s *Storage) getUserByIDTx(ctx context.Context, id uint, tx *sqlx.Tx) (user model.User, err error) {
-	err = tx.GetContext(ctx, &user, "SELECT * FROM users WHERE id=$1", id)
+func (s *Storage) getUserByOrderNumberTx(ctx context.Context, id uint, tx *sqlx.Tx) (user model.User, err error) {
+	err = tx.GetContext(ctx, &user, "SELECT u.id, login, password, created_at, balance FROM users u join orders o on u.id = o.user_id WHERE o.order_number=$1", id)
 	return
 }

@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 	"github.com/mrkovshik/yandex_diploma/internal/storage/postgres"
 	"go.uber.org/zap"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 )
 
+const accrualInterval = 3 * time.Second //TODO: move to config
 var schema = `
 CREATE TABLE IF NOT EXISTS users (
 	id serial NOT NULL,
@@ -65,7 +68,17 @@ func main() {
 	}
 	db.MustExec(schema)
 	storage := postgres.NewStorage(db)
-	srv := rest.NewRestApiServer(storage, cfg, sugar)
+	service := loyalty.NewBasicService(storage, cfg, sugar)
+	srv := rest.NewRestApiServer(service, storage, cfg, sugar)
+
+	accrualTicker := time.NewTicker(accrualInterval)
+	go func() {
+		for range accrualTicker.C {
+			if err := service.UpdatePendingOrders(ctx); err != nil {
+				sugar.Errorf("UpdatePendingOrders: %e", err)
+			}
+		}
+	}()
 
 	if err := srv.RunServer(ctx); err != nil {
 	}

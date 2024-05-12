@@ -16,4 +16,5 @@ type Storage interface {
 	FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber uint, amount int) error
 	SetOrderStatus(ctx context.Context, orderNumber uint, status model.OrderState) error
 	GetOrdersByUserID(ctx context.Context, userId uint) ([]model.Order, error)
+	GetPendingOrders(ctx context.Context) (orders []uint, err error)
 }

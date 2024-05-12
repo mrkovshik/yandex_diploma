@@ -10,8 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
-
 	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 )
@@ -21,7 +19,6 @@ var validate = validator.New(validator.WithRequiredStructEnabled())
 func (s *restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var user model.User
-		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
 		if err := c.BindJSON(&user); err != nil {
 			s.logger.Error("BindJSON", err)
 			c.AbortWithStatus(http.StatusBadRequest)
@@ -33,7 +30,7 @@ func (s *restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 			return
 		}
 
-		if err := basicService.Register(ctx, user.Login, user.Password); err != nil {
+		if err := s.service.Register(ctx, user.Login, user.Password); err != nil {
 			if errors.Is(err, app_errors.ErrUserAlreadyExists) {
 				s.logger.Error("Register: ", err)
 				c.IndentedJSON(http.StatusConflict, gin.H{"error": err.Error()})
@@ -49,7 +46,7 @@ func (s *restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 func (s *restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var user model.User
-		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
+
 		if err := c.BindJSON(&user); err != nil {
 			s.logger.Error("BindJSON", err)
 			c.AbortWithStatus(http.StatusBadRequest)
@@ -61,7 +58,7 @@ func (s *restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 			return
 		}
 
-		token, err := basicService.Login(ctx, user.Login, user.Password)
+		token, err := s.service.Login(ctx, user.Login, user.Password)
 		if err != nil {
 			if errors.Is(err, app_errors.ErrInvalidPassword) || errors.Is(err, sql.ErrNoRows) {
 				s.logger.Error("Register: ", err)
@@ -78,8 +75,6 @@ func (s *restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 
 func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
-
 		orderNumber, err := getOrderNumberFromContext(c)
 		if err != nil {
 			s.logger.Errorf("getOrderNumberFromContext: %v", err)
@@ -92,7 +87,7 @@ func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
 			return
 		}
-		exist, err := basicService.UploadOrder(ctx, orderNumber, userId)
+		exist, err := s.service.UploadOrder(ctx, orderNumber, userId)
 		if err != nil {
 			if errors.Is(err, app_errors.ErrOrderIsUploadedByAnotherUser) {
 				s.logger.Error("UploadOrder", err)
@@ -113,14 +108,13 @@ func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 
 func (s *restApiServer) GetOrders(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		basicService := loyalty.NewBasicService(s.storage, s.cfg, s.logger)
 		userId, err := getUserIdFromContext(c)
 		if err != nil {
 			s.logger.Errorf("getUserIdFromContext: %v", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
 			return
 		}
-		orders, err := basicService.GetUserOrders(ctx, userId)
+		orders, err := s.service.GetUserOrders(ctx, userId)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				c.IndentedJSON(http.StatusNoContent, gin.H{"message": "no orders found"})
