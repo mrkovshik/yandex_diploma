@@ -105,6 +105,7 @@ func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 		}
 		if exist {
 			c.IndentedJSON(http.StatusAccepted, gin.H{"message": "order is already uploaded"})
+			return
 		}
 		c.IndentedJSON(http.StatusOK, gin.H{"message": "order successfully uploaded"})
 	}

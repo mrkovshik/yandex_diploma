@@ -26,13 +26,15 @@ type tokenResp struct {
 
 const (
 	UserLoginNotExist        = "none"
-	orderExisting            = uint(1234567890)
+	orderExistingUser1       = uint(123456789049)
+	orderExistingUser2       = uint(123456789015)
 	orderNotExisting         = uint(123456789007)
 	NumberForTooManyRequests = uint(2468013579)
 	UserLogin1               = "JohnDow"
 	UserPass1                = "qwerty"
 	userHashedPass1          = "$2a$10$XVc79vBoRda4wdsx/uqMd.obXNtIbOvGttqUsgfBC4YfvuoD0fvrG"
 	UserId1                  = uint(123)
+	UserId2                  = uint(1232)
 	UserIdNotExist           = uint(456)
 )
 
@@ -119,30 +121,39 @@ func Test_restApiServer_RunServer(t *testing.T) {
 		resp, err = client.R().SetHeader("Content-Type", "application/json").
 			SetBody(fmt.Sprintf(`{"login":"%v", "password":"%v"}`, "", UserPass1)).
 			Post(fmt.Sprintf("http://%v/api/user/login", cfg.RunAddress))
+
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode())
 	})
 
 	t.Run("upload_order", func(t *testing.T) {
+		url := fmt.Sprintf("http://%v/api/user/orders", cfg.RunAddress)
 		client := resty.New()
 
 		//Normal flow
 		resp, err := client.R().SetHeader("Content-Type", "text/plain").
 			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
 			SetBody(fmt.Sprint(orderNotExisting)).
-			Post(fmt.Sprintf("http://%v/api/user/orders", cfg.RunAddress))
+			Post(url)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
-	})
 
-	//	//Already exist
-	//	resp, err := client.R().SetHeader("Content-Type", "text/plain").
-	//		SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
-	//		SetBody(fmt.Sprint(orderNotExisting)).
-	//		Post(fmt.Sprintf("http://%v/api/user/orders", cfg.RunAddress))
-	//	assert.NoError(t, err)
-	//	assert.Equal(t, http.StatusOK, resp.StatusCode())
-	//})
+		//Already uploaded
+		resp1, err1 := client.R().SetHeader("Content-Type", "text/plain").
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			SetBody(fmt.Sprint(orderExistingUser1)).
+			Post(url)
+		assert.NoError(t, err1)
+		assert.Equal(t, http.StatusAccepted, resp1.StatusCode())
+
+		//Already uploaded by another user
+		resp2, err2 := client.R().SetHeader("Content-Type", "text/plain").
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			SetBody(fmt.Sprint(orderExistingUser2)).
+			Post(url)
+		assert.NoError(t, err2)
+		assert.Equal(t, http.StatusConflict, resp2.StatusCode())
+	})
 
 }
 
@@ -154,9 +165,8 @@ func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.M
 		Password:  userHashedPass1,
 		Balance:   50,
 		CreatedAt: time.Now(),
-		UpdatedAt: sql.NullTime{},
-	}, nil)
-	storage.EXPECT().GetUserByLogin(ctx, UserLoginNotExist).Return(model.User{}, sql.ErrNoRows)
+	}, nil).AnyTimes()
+	storage.EXPECT().GetUserByLogin(ctx, UserLoginNotExist).Return(model.User{}, sql.ErrNoRows).AnyTimes()
 	//storage.EXPECT().GetUserByID(ctx, UserIdNotExist).Return(model.User{}, sql.ErrNoRows)
 	storage.EXPECT().GetUserByID(ctx, UserId1).Return(model.User{
 		ID:        UserId1,
@@ -164,19 +174,34 @@ func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.M
 		Password:  userHashedPass1,
 		Balance:   50,
 		CreatedAt: time.Now(),
-		UpdatedAt: sql.NullTime{},
-	}, nil)
+	}, nil).AnyTimes()
 
-	storage.EXPECT().AddUser(ctx, UserLoginNotExist, gomock.Any()).Return(nil)
-	storage.EXPECT().AddUser(ctx, UserLogin1, gomock.Any()).Return(app_errors.ErrUserAlreadyExists)
+	storage.EXPECT().AddUser(ctx, UserLoginNotExist, gomock.Any()).Return(nil).AnyTimes()
+	storage.EXPECT().AddUser(ctx, UserLogin1, gomock.Any()).Return(app_errors.ErrUserAlreadyExists).AnyTimes()
 
-	storage.EXPECT().GetOrderByNumber(ctx, orderNotExisting).Return(model.Order{}, sql.ErrNoRows)
+	storage.EXPECT().GetOrderByNumber(ctx, orderNotExisting).Return(model.Order{}, sql.ErrNoRows).AnyTimes()
+	storage.EXPECT().GetOrderByNumber(ctx, orderExistingUser1).Return(model.Order{
+		ID:          878,
+		OrderNumber: orderExistingUser1,
+		UserId:      UserId1,
+		Status:      model.OrderStateProcessed,
+		UploadedAt:  time.Now(),
+		Accrual:     1000,
+	}, nil).AnyTimes()
+	storage.EXPECT().GetOrderByNumber(ctx, orderExistingUser2).Return(model.Order{
+		ID:          878,
+		OrderNumber: orderExistingUser2,
+		UserId:      UserId2,
+		Status:      model.OrderStateProcessed,
+		UploadedAt:  time.Now(),
+		Accrual:     1000,
+	}, nil).AnyTimes()
 
-	storage.EXPECT().UploadOrder(ctx, UserId1, orderNotExisting).Return(nil)
+	storage.EXPECT().UploadOrder(ctx, UserId1, orderNotExisting).Return(nil).AnyTimes().AnyTimes()
 
-	//storage.EXPECT().GetOrderByNumber(ctx, orderExisting).Return(model.Order{
+	//storage.EXPECT().GetOrderByNumber(ctx, orderExistingUser1).Return(model.Order{
 	//	ID:          5,
-	//	OrderNumber: orderExisting,
+	//	OrderNumber: orderExistingUser1,
 	//	UserId:      UserId1,
 	//	Status:      model.OrderStateProcessed,
 	//	UploadedAt:  time.Now(),
