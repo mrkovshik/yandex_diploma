@@ -96,6 +96,29 @@ func (s *Storage) GetPendingOrders(ctx context.Context) (orders []uint, err erro
 	return
 }
 
+func (s *Storage) ProcessWithdrawal(ctx context.Context, withdrawal model.Withdrawal) error {
+	tx, err := s.db.Beginx()
+	defer tx.Rollback() //nolint:all
+	if err != nil {
+		return err
+	}
+	if err := s.addWithdrawalTx(ctx, withdrawal, tx); err != nil {
+		return err
+	}
+	if err := s.updateUserBalanceByUserIdTx(ctx, withdrawal.UserId, -withdrawal.Amount, tx); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Storage) GetWithdrawalsSumByUserId(ctx context.Context, userId uint) (sum int, err error) {
+	err = s.db.SelectContext(ctx, &sum, "SELECT SUM(amount) FROM withdrawals WHERE withdrawals.user_id = $1 group by user_id", userId)
+	return
+}
+
 func (s *Storage) updateUserBalanceByOrderNumberTx(ctx context.Context, orderNumber uint, amount int, tx *sqlx.Tx) error {
 
 	user, err := s.getUserByOrderNumberTx(ctx, orderNumber, tx)
@@ -103,6 +126,26 @@ func (s *Storage) updateUserBalanceByOrderNumberTx(ctx context.Context, orderNum
 		return err
 	}
 	newBalance := user.Balance + amount
+	if newBalance < 0 {
+		return app_errors.ErrNotEnoughFunds
+	}
+
+	if _, err := tx.ExecContext(ctx, "UPDATE users SET balance = $1 WHERE id = $2;", newBalance, user.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Storage) updateUserBalanceByUserIdTx(ctx context.Context, userId uint, amount int, tx *sqlx.Tx) error {
+	user, err := s.getUserByUserIdTx(ctx, userId, tx)
+	if err != nil {
+		return err
+	}
+
+	newBalance := user.Balance + amount
+	if newBalance < 0 {
+		return app_errors.ErrNotEnoughFunds
+	}
 
 	if _, err := tx.ExecContext(ctx, "UPDATE users SET balance = $1 WHERE id = $2;", newBalance, user.ID); err != nil {
 		return err
@@ -128,4 +171,16 @@ func (s *Storage) setOrderAccrualTx(ctx context.Context, orderNumber uint, amoun
 func (s *Storage) getUserByOrderNumberTx(ctx context.Context, id uint, tx *sqlx.Tx) (user model.User, err error) {
 	err = tx.GetContext(ctx, &user, "SELECT u.id, login, password, created_at, balance FROM users u join orders o on u.id = o.user_id WHERE o.order_number=$1", id)
 	return
+}
+
+func (s *Storage) getUserByUserIdTx(ctx context.Context, userId uint, tx *sqlx.Tx) (user model.User, err error) {
+	err = tx.GetContext(ctx, &user, "SELECT * FROM users  WHERE id =$1", userId)
+	return
+}
+
+func (s *Storage) addWithdrawalTx(ctx context.Context, withdrawal model.Withdrawal, tx *sqlx.Tx) error {
+	if _, err := tx.ExecContext(ctx, "INSERT INTO withdrawals (amount, processed_at, order_number, user_id) VALUES ($1, $2, $3, $4)", withdrawal.Amount, time.Now().UTC(), withdrawal.OrderNumber, withdrawal.UserId); err != nil {
+		return err
+	}
+	return nil
 }

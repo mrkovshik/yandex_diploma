@@ -34,6 +34,8 @@ func (s *restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 			if errors.Is(err, app_errors.ErrUserAlreadyExists) {
 				s.logger.Error("Register: ", err)
 				c.IndentedJSON(http.StatusConflict, gin.H{"error": err.Error()})
+				c.Abort()
+				return
 			}
 			s.logger.Error("Register: ", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
@@ -63,6 +65,8 @@ func (s *restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 			if errors.Is(err, app_errors.ErrInvalidPassword) || errors.Is(err, sql.ErrNoRows) {
 				s.logger.Error("Register: ", err)
 				c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+				c.Abort()
+				return
 			}
 
 			s.logger.Error("Register: ", err)
@@ -100,6 +104,7 @@ func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 		}
 		if exist {
 			c.IndentedJSON(http.StatusAccepted, gin.H{"message": "order is already uploaded"})
+			c.Abort()
 			return
 		}
 		c.IndentedJSON(http.StatusOK, gin.H{"message": "order successfully uploaded"})
@@ -118,12 +123,66 @@ func (s *restApiServer) GetOrders(ctx context.Context) func(c *gin.Context) {
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				c.IndentedJSON(http.StatusNoContent, gin.H{"message": "no orders found"})
+				c.Abort()
+				return
 			}
 			s.logger.Error("GetOrdersByUserID", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 		c.IndentedJSON(http.StatusOK, orders)
+	}
+}
+
+func (s *restApiServer) Withdraw(ctx context.Context) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		userId, err := getUserIdFromContext(c)
+		if err != nil {
+			s.logger.Errorf("getUserIdFromContext: %v", err)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
+			return
+		}
+		var withdrawRequest model.WithdrawRequest
+		if err := c.BindJSON(&withdrawRequest); err != nil {
+			s.logger.Error("BindJSON", err)
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		if err := validate.Var(withdrawRequest.Sum, "required,min=1"); err != nil {
+			s.logger.Error("validate Sum: ", err)
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		orderNumber, err := strconv.ParseUint(withdrawRequest.Order, 10, 64)
+		if err != nil {
+			s.logger.Error("ParseUint: ", err)
+			c.AbortWithStatus(http.StatusUnprocessableEntity)
+			return
+		}
+
+		if err := validate.Var(orderNumber, "required,luhn_checksum"); err != nil {
+			s.logger.Error("validate OrderNumber: ", err)
+			c.AbortWithStatus(http.StatusUnprocessableEntity)
+			return
+		}
+
+		withdrawal := model.Withdrawal{
+			Amount:      withdrawRequest.Sum,
+			OrderNumber: uint(orderNumber),
+			UserId:      userId,
+		}
+		if err := s.service.Withdraw(ctx, withdrawal); err != nil {
+			if errors.Is(err, app_errors.ErrNotEnoughFunds) {
+				s.logger.Error("Withdraw", err)
+				c.IndentedJSON(http.StatusPaymentRequired, gin.H{"message": err.Error()})
+				c.Abort()
+				return
+			}
+			s.logger.Error("Withdraw", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		c.IndentedJSON(http.StatusOK, gin.H{"message": "withdrawal successfully processed"})
 	}
 }
 

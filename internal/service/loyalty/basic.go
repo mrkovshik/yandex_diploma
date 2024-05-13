@@ -131,6 +131,13 @@ func (s *basicService) GetUserOrders(ctx context.Context, userId uint) ([]model.
 	return orders, nil
 }
 
+func (s *basicService) Withdraw(ctx context.Context, withdrawal model.Withdrawal) error {
+	if err := s.storage.ProcessWithdrawal(ctx, withdrawal); err != nil {
+		return err
+	}
+	return nil
+}
+
 func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err

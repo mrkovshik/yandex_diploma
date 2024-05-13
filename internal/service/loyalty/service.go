@@ -13,4 +13,5 @@ type Service interface {
 	UpdateOrderAccrual(ctx context.Context, orderNumber uint) error
 	GetUserOrders(ctx context.Context, userId uint) ([]model.Order, error)
 	UpdatePendingOrders(ctx context.Context) error
+	Withdraw(ctx context.Context, withdrawal model.Withdrawal) error
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 	"github.com/mrkovshik/yandex_diploma/internal/service/accrual/mock"
+	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 	mock_loyalty "github.com/mrkovshik/yandex_diploma/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -57,8 +58,8 @@ func Test_restApiServer_RunServer(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockStorage := defineStorage(ctx, ctrl)
-
-	srv := NewRestApiServer(mockStorage, cfg, sugar)
+	service := loyalty.NewBasicService(mockStorage, cfg, sugar)
+	srv := NewRestApiServer(service, mockStorage, cfg, sugar)
 	go func() {
 		if err := srv.RunServer(ctx); err != nil {
 			return

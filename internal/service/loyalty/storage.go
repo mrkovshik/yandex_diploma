@@ -17,4 +17,5 @@ type Storage interface {
 	SetOrderStatus(ctx context.Context, orderNumber uint, status model.OrderState) error
 	GetOrdersByUserID(ctx context.Context, userId uint) ([]model.Order, error)
 	GetPendingOrders(ctx context.Context) (orders []uint, err error)
+	ProcessWithdrawal(ctx context.Context, withdrawal model.Withdrawal) error
 }
