@@ -121,13 +121,13 @@ func (s *restApiServer) GetOrders(ctx context.Context) func(c *gin.Context) {
 		}
 		orders, err := s.service.GetUserOrders(ctx, userId)
 		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				c.IndentedJSON(http.StatusNoContent, gin.H{"message": "no orders found"})
-				c.Abort()
-				return
-			}
 			s.logger.Error("GetOrdersByUserID", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if len(orders) == 0 {
+			c.IndentedJSON(http.StatusNoContent, gin.H{"message": "no orders found"})
+			c.Abort()
 			return
 		}
 		c.IndentedJSON(http.StatusOK, orders)
@@ -142,33 +142,33 @@ func (s *restApiServer) Withdraw(ctx context.Context) func(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
 			return
 		}
-		var withdrawRequest model.WithdrawRequest
+		var withdrawRequest model.Withdrawal
 		if err := c.BindJSON(&withdrawRequest); err != nil {
 			s.logger.Error("BindJSON", err)
 			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
-		if err := validate.Var(withdrawRequest.Sum, "required,min=1"); err != nil {
+		if err := validate.Var(withdrawRequest.Amount, "required,min=1"); err != nil {
 			s.logger.Error("validate Sum: ", err)
 			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
-		orderNumber, err := strconv.ParseUint(withdrawRequest.Order, 10, 64)
+		orderNumberInt, err := strconv.ParseUint(withdrawRequest.OrderNumber, 10, 64)
 		if err != nil {
 			s.logger.Error("ParseUint: ", err)
 			c.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
 
-		if err := validate.Var(orderNumber, "required,luhn_checksum"); err != nil {
+		if err := validate.Var(orderNumberInt, "required,luhn_checksum"); err != nil {
 			s.logger.Error("validate OrderNumber: ", err)
 			c.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
 
 		withdrawal := model.Withdrawal{
-			Amount:      withdrawRequest.Sum,
-			OrderNumber: uint(orderNumber),
+			Amount:      withdrawRequest.Amount,
+			OrderNumber: withdrawRequest.OrderNumber,
 			UserId:      userId,
 		}
 		if err := s.service.Withdraw(ctx, withdrawal); err != nil {
@@ -186,6 +186,45 @@ func (s *restApiServer) Withdraw(ctx context.Context) func(c *gin.Context) {
 	}
 }
 
+func (s *restApiServer) GetBalance(ctx context.Context) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		userId, err := getUserIdFromContext(c)
+		if err != nil {
+			s.logger.Errorf("getUserIdFromContext: %v", err)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
+			return
+		}
+		balance, err1 := s.service.GetBalance(ctx, userId)
+		if err1 != nil {
+			s.logger.Errorf("GetBalance: %v", err1)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		c.IndentedJSON(http.StatusOK, balance)
+	}
+}
+
+func (s *restApiServer) ListWithdrawals(ctx context.Context) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		userId, err := getUserIdFromContext(c)
+		if err != nil {
+			s.logger.Errorf("getUserIdFromContext: %v", err)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
+			return
+		}
+		withdrawals, err1 := s.service.LisUserWithdrawals(ctx, userId)
+		if err1 != nil {
+			s.logger.Errorf("GetBalance: %v", err1)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if len(withdrawals) == 0 {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.IndentedJSON(http.StatusOK, withdrawals)
+	}
+}
 func getOrderNumberFromContext(c *gin.Context) (uint, error) {
 	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(c.Request.Body); err != nil {

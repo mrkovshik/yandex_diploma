@@ -156,6 +156,56 @@ func Test_restApiServer_RunServer(t *testing.T) {
 		assert.Equal(t, http.StatusConflict, resp2.StatusCode())
 	})
 
+	t.Run("get_orders", func(t *testing.T) {
+		url := fmt.Sprintf("http://%v/api/user/orders", cfg.RunAddress)
+		client := resty.New()
+
+		//Normal flow
+		resp, err := client.R().SetHeader("Content-Type", "text/plain").
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			Get(url)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
+		orders := make([]model.Order, 3)
+		err1 := json.Unmarshal(resp.Body(), &orders)
+		assert.NoError(t, err1)
+		assert.Equal(t, orders[0].OrderNumber, orderExistingUser2)
+		assert.Equal(t, orders[1].Status, model.OrderStateProcessing)
+		assert.Equal(t, orders[2].Accrual, 1000)
+
+		//No data
+		resp2, err2 := client.R().SetHeader("Content-Type", "text/plain").
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			Get(url)
+		assert.NoError(t, err2)
+		assert.Equal(t, http.StatusNoContent, resp2.StatusCode())
+	})
+
+	t.Run("get_balance", func(t *testing.T) {
+		url := fmt.Sprintf("http://%v/api/user/orders", cfg.RunAddress)
+		client := resty.New()
+
+		//Normal flow
+		resp, err := client.R().SetHeader("Content-Type", "text/plain").
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			Get(url)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
+		orders := make([]model.Order, 3)
+		err1 := json.Unmarshal(resp.Body(), &orders)
+		assert.NoError(t, err1)
+		assert.Equal(t, orders[0].OrderNumber, orderExistingUser2)
+		assert.Equal(t, orders[1].Status, model.OrderStateProcessing)
+		assert.Equal(t, orders[2].Accrual, 1000)
+
+		//No data
+		resp2, err2 := client.R().SetHeader("Content-Type", "text/plain").
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			Get(url)
+		assert.NoError(t, err2)
+		assert.Equal(t, http.StatusNoContent, resp2.StatusCode())
+	})
+
 }
 
 func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.MockStorage {
@@ -197,7 +247,34 @@ func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.M
 		UploadedAt:  time.Now(),
 		Accrual:     1000,
 	}, nil).AnyTimes()
+	gomock.InOrder(
 
+		storage.EXPECT().GetOrdersByUserID(ctx, UserId1).Return([]model.Order{
+			{
+				ID:          878,
+				OrderNumber: orderExistingUser2,
+				UserId:      UserId2,
+				Status:      model.OrderStateInvalid,
+				UploadedAt:  time.Now(),
+			},
+			{
+				ID:          234,
+				OrderNumber: orderExistingUser1,
+				UserId:      UserId2,
+				Status:      model.OrderStateProcessing,
+				UploadedAt:  time.Now(),
+			},
+			{
+				ID:          8543,
+				OrderNumber: orderNotExisting,
+				UserId:      UserId2,
+				Status:      model.OrderStateProcessed,
+				UploadedAt:  time.Now(),
+				Accrual:     1000,
+			},
+		}, nil),
+		storage.EXPECT().GetOrdersByUserID(ctx, UserId1).Return([]model.Order{}, nil).AnyTimes(),
+	)
 	storage.EXPECT().UploadOrder(ctx, UserId1, orderNotExisting).Return(nil).AnyTimes().AnyTimes()
 
 	//storage.EXPECT().GetOrderByNumber(ctx, orderExistingUser1).Return(model.Order{

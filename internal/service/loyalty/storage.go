@@ -18,4 +18,6 @@ type Storage interface {
 	GetOrdersByUserID(ctx context.Context, userId uint) ([]model.Order, error)
 	GetPendingOrders(ctx context.Context) (orders []uint, err error)
 	ProcessWithdrawal(ctx context.Context, withdrawal model.Withdrawal) error
+	GetWithdrawalsSumByUserId(ctx context.Context, userId uint) (sum int, err error)
+	GetWithdrawalsByUserId(ctx context.Context, userId uint) (withdrawals []model.Withdrawal, err error)
 }
