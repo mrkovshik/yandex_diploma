@@ -36,14 +36,12 @@ CREATE TABLE IF NOT EXISTS orders (
 	CONSTRAINT orders_unique UNIQUE (order_number)
 );                                  
     CREATE TABLE IF NOT EXISTS withdrawals (
-	id serial4 NOT NULL,
+		id serial4 NOT NULL,
+	amount int8 NOT NULL,
+	processed_at timestamptz NOT NULL,
 	order_number varchar NOT NULL,
 	user_id int4 NOT NULL,
-	uploaded_at timestamptz NOT NULL,
-	status varchar DEFAULT 'NEW'::character varying NOT NULL,
-	accrual int4 DEFAULT 0 NOT NULL,
-	CONSTRAINT orders_pk PRIMARY KEY (id),
-	CONSTRAINT orders_unique UNIQUE (order_number)
+	CONSTRAINT withdrawals_pk PRIMARY KEY (id)
 )`
 
 type Person struct {
