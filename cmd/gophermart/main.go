@@ -15,26 +15,35 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 )
 
-const accrualInterval = 60 * time.Second //TODO: move to config
+const accrualInterval = 5 * time.Second //TODO: move to config
 var schema = `
 CREATE TABLE IF NOT EXISTS users (
-	id serial NOT NULL,
+	id serial4 NOT NULL,
 	login varchar NOT NULL,
 	"password" varchar NOT NULL,
-	created_at timestamp with time zone NOT NULL,
-	updated_at timestamp with time zone NULL,
+	created_at timestamptz NOT NULL,
+	balance float4 DEFAULT 0 NOT NULL,
 	CONSTRAINT users_pk PRIMARY KEY (id)
 );
 CREATE TABLE IF NOT EXISTS orders (
-	id serial NOT NULL,
-	order_number bigint NOT NULL,
-	user_id integer NOT NULL,
-	uploaded_at timestamp with time zone NOT NULL,
-	updated_at timestamp with time zone NULL,
-	status varchar NULL,
+	id serial4 NOT NULL,
+	order_number varchar NOT NULL,
+	user_id int4 NOT NULL,
+	uploaded_at timestamptz NOT NULL,
+	status varchar DEFAULT 'NEW'::character varying NOT NULL,
+	accrual int4 DEFAULT 0 NOT NULL,
 	CONSTRAINT orders_pk PRIMARY KEY (id),
-	CONSTRAINT orders_unique UNIQUE (order_number),
-	CONSTRAINT orders_users_fk FOREIGN KEY (user_id) REFERENCES users(id)
+	CONSTRAINT orders_unique UNIQUE (order_number)
+);                                  
+    CREATE TABLE IF NOT EXISTS withdrawals (
+	id serial4 NOT NULL,
+	order_number varchar NOT NULL,
+	user_id int4 NOT NULL,
+	uploaded_at timestamptz NOT NULL,
+	status varchar DEFAULT 'NEW'::character varying NOT NULL,
+	accrual int4 DEFAULT 0 NOT NULL,
+	CONSTRAINT orders_pk PRIMARY KEY (id),
+	CONSTRAINT orders_unique UNIQUE (order_number)
 )`
 
 type Person struct {
