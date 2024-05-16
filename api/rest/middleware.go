@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -12,8 +11,8 @@ import (
 
 func (s *restAPIServer) Auth(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token, found := strings.CutPrefix(c.GetHeader("Authorization"), "Bearer ")
-		if !found {
+		token := c.GetHeader("Authorization")
+		if token == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "Unauthorized")
 			return
 		}
