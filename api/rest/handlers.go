@@ -42,7 +42,8 @@ func (s *restAPIServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		c.IndentedJSON(http.StatusOK, gin.H{"token": token})
+		c.Header("Authorization", token)
+		c.IndentedJSON(http.StatusOK, gin.H{"message": "registration successful"})
 	}
 }
 
@@ -74,7 +75,8 @@ func (s *restAPIServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		c.IndentedJSON(http.StatusOK, gin.H{"token": token})
+		c.Header("Authorization", token)
+		c.IndentedJSON(http.StatusOK, gin.H{"message": "login successful"})
 	}
 }
 
