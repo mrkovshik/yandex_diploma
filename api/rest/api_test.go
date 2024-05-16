@@ -22,10 +22,6 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 )
 
-type tokenResp struct {
-	Token string
-}
-
 const (
 	UserLoginNotExist  = "none"
 	orderExistingUser1 = uint(123456789049)
@@ -59,7 +55,7 @@ var (
 )
 
 func Test_restAPIServer_RunServer(t *testing.T) {
-	var authToken tokenResp
+	var authToken string
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		logger.Fatal("zap.NewDevelopment",
@@ -95,9 +91,8 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 			Post(fmt.Sprintf("http://%v/api/user/register", cfg.RunAddress))
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
-		err1 := json.Unmarshal(resp.Body(), &authToken)
-		assert.NoError(t, err1)
-		assert.NotEqual(t, 0, len(authToken.Token))
+		authToken = resp.Header().Get("Authorization")
+		assert.NotEqual(t, 0, len(authToken))
 
 		//User already exist
 		resp, err = client.R().SetHeader("Content-Type", "application/json").
@@ -130,8 +125,8 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 			Post(fmt.Sprintf("http://%v/api/user/login", cfg.RunAddress))
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
-		err1 := json.Unmarshal(resp.Body(), &authToken)
-		assert.NoError(t, err1)
+		authToken = resp.Header().Get("Authorization")
+		assert.NotEqual(t, 0, len(authToken))
 
 		//User is not exist
 		resp, err = client.R().SetHeader("Content-Type", "application/json").
@@ -155,7 +150,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//Normal flow
 		resp, err := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
 			SetBody(fmt.Sprint(orderNotExisting)).
 			Post(url)
 		assert.NoError(t, err)
@@ -163,7 +158,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//Already uploaded
 		resp1, err1 := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
 			SetBody(fmt.Sprint(orderExistingUser1)).
 			Post(url)
 		assert.NoError(t, err1)
@@ -171,7 +166,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//Already uploaded by another user
 		resp2, err2 := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
 			SetBody(fmt.Sprint(orderExistingUser2)).
 			Post(url)
 		assert.NoError(t, err2)
@@ -184,7 +179,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//Normal flow
 		resp, err := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
 			Get(url)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
@@ -197,7 +192,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//No data
 		resp2, err2 := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
 			Get(url)
 		assert.NoError(t, err2)
 		assert.Equal(t, http.StatusNoContent, resp2.StatusCode())
@@ -209,7 +204,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//Normal flow
 		resp, err := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
 			Get(url)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
@@ -227,7 +222,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//Normal flow
 		resp, err := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
+			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
 			Get(url)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
