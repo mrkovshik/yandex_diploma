@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mrkovshik/yandex_diploma/internal/appErrors"
+	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +23,7 @@ func Test_service_GetOrderScore(t *testing.T) {
 			}
 			respJSON, _ := json.Marshal(mockResp)
 			w.WriteHeader(http.StatusOK)
-			w.Write(respJSON)
+			_, _ = w.Write(respJSON)
 
 		case "/api/orders/456":
 			w.WriteHeader(http.StatusNoContent)
@@ -50,17 +50,17 @@ func Test_service_GetOrderScore(t *testing.T) {
 			Order:   0,
 			Status:  "",
 			Accrual: 0,
-		}, appErrors.ErrNoSuchOrder},
+		}, apperrors.ErrNoSuchOrder},
 		{"3_neg", 789, Response{
 			Order:   0,
 			Status:  "",
 			Accrual: 0,
-		}, appErrors.ErrTooManyRetrials},
+		}, apperrors.ErrTooManyRetrials},
 		{"4_neg", 7819, Response{
 			Order:   0,
 			Status:  "",
 			Accrual: 0,
-		}, appErrors.ErrInvalidResponseCode},
+		}, apperrors.ErrInvalidResponseCode},
 	}
 
 	for _, tt := range tests {
