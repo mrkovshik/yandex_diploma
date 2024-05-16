@@ -32,3 +32,5 @@ func (s *restAPIServer) Auth(ctx context.Context) gin.HandlerFunc {
 		c.Set("userID", claims.UserID)
 	}
 }
+
+//TODO: add compressing MW here

@@ -37,6 +37,7 @@ func (s *Service) GenerateToken(userID uint) (string, error) {
 	return tokenString, nil
 }
 
+// TODO: Add exp validation
 func (s *Service) ValidateToken(token string) (Claims, error) {
 	claims := Claims{}
 	if _, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {

@@ -1,4 +1,4 @@
-package loyalty
+package api
 
 import (
 	"context"

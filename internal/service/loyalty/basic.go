@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/mrkovshik/yandex_diploma/api"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 	"go.uber.org/zap"
@@ -19,13 +20,13 @@ const workersQty = 2
 
 type (
 	basicService struct {
-		storage Storage
+		storage api.Storage
 		cfg     *config.Config
 		Logger  *zap.SugaredLogger
 	}
 )
 
-func NewBasicService(storage Storage, cfg *config.Config, logger *zap.SugaredLogger) Service {
+func NewBasicService(storage api.Storage, cfg *config.Config, logger *zap.SugaredLogger) api.Service {
 	return &basicService{
 		storage: storage,
 		cfg:     cfg,
@@ -44,6 +45,9 @@ func (s *basicService) Register(ctx context.Context, login, password string) (st
 	}
 	authSrv := auth.NewAuthService(s.cfg.SecretKey, s.cfg.TokenExp)
 	token, err := authSrv.GenerateToken(userID)
+	if err != nil {
+		return "", err
+	}
 	return token, nil
 }
 
