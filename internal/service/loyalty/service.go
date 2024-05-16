@@ -15,5 +15,5 @@ type Service interface {
 	UpdatePendingOrders(ctx context.Context) error
 	Withdraw(ctx context.Context, withdrawal model.Withdrawal) error
 	LisUserWithdrawals(ctx context.Context, userId uint) ([]model.Withdrawal, error)
-	GetBalance(ctx context.Context, userId uint) (getBalanceResponse, error)
+	GetBalance(ctx context.Context, userId uint) (model.GetBalanceResponse, error)
 }

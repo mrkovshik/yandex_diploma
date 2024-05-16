@@ -11,14 +11,15 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
+	mock_loyalty "github.com/mrkovshik/yandex_diploma/mocks"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+
 	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 	"github.com/mrkovshik/yandex_diploma/internal/service/accrual/mock"
 	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
-	mock_loyalty "github.com/mrkovshik/yandex_diploma/mocks"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 )
 
 type tokenResp struct {
@@ -37,6 +38,26 @@ const (
 	UserId1                  = uint(123)
 	UserId2                  = uint(1232)
 	UserIdNotExist           = uint(456)
+	withdrawalSumUser1       = 555
+	balanceUser1             = float64(1000)
+)
+
+var (
+	withdrawalUser1 = model.Withdrawal{
+		ID:          324324,
+		Amount:      300,
+		ProcessedAt: time.Now(),
+		OrderNumber: fmt.Sprint(orderExistingUser1),
+		UserId:      UserId1,
+	}
+	withdrawalUser1a = model.Withdrawal{
+
+		ID:          3433,
+		Amount:      500,
+		ProcessedAt: time.Now(),
+		OrderNumber: fmt.Sprint(orderExistingUser1),
+		UserId:      UserId1,
+	}
 )
 
 func Test_restApiServer_RunServer(t *testing.T) {
@@ -182,7 +203,7 @@ func Test_restApiServer_RunServer(t *testing.T) {
 	})
 
 	t.Run("get_balance", func(t *testing.T) {
-		url := fmt.Sprintf("http://%v/api/user/orders", cfg.RunAddress)
+		url := fmt.Sprintf("http://%v/api/user/balance", cfg.RunAddress)
 		client := resty.New()
 
 		//Normal flow
@@ -191,19 +212,30 @@ func Test_restApiServer_RunServer(t *testing.T) {
 			Get(url)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
-		orders := make([]model.Order, 3)
-		err1 := json.Unmarshal(resp.Body(), &orders)
+		balanceResp := model.GetBalanceResponse{}
+		err1 := json.Unmarshal(resp.Body(), &balanceResp)
 		assert.NoError(t, err1)
-		assert.Equal(t, orders[0].OrderNumber, orderExistingUser2)
-		assert.Equal(t, orders[1].Status, model.OrderStateProcessing)
-		assert.Equal(t, orders[2].Accrual, 1000)
+		assert.Equal(t, balanceResp.Balance, balanceUser1)
+		assert.Equal(t, balanceResp.Withdrawn, withdrawalSumUser1)
 
-		//No data
-		resp2, err2 := client.R().SetHeader("Content-Type", "text/plain").
+	})
+
+	t.Run("get_withdrawals", func(t *testing.T) {
+		url := fmt.Sprintf("http://%v/api/user/withdrawals", cfg.RunAddress)
+		client := resty.New()
+
+		//Normal flow
+		resp, err := client.R().SetHeader("Content-Type", "text/plain").
 			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken.Token)).
 			Get(url)
-		assert.NoError(t, err2)
-		assert.Equal(t, http.StatusNoContent, resp2.StatusCode())
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
+		withdrawals := make([]model.Withdrawal, 2)
+		err1 := json.Unmarshal(resp.Body(), &withdrawals)
+		assert.NoError(t, err1)
+		assert.Equal(t, withdrawals[0].Amount, withdrawalUser1.Amount)
+		assert.Equal(t, withdrawals[1].OrderNumber, withdrawalUser1a.OrderNumber)
+
 	})
 
 }
@@ -214,16 +246,15 @@ func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.M
 		ID:        UserId1,
 		Login:     UserLogin1,
 		Password:  userHashedPass1,
-		Balance:   50,
+		Balance:   balanceUser1,
 		CreatedAt: time.Now(),
 	}, nil).AnyTimes()
 	storage.EXPECT().GetUserByLogin(ctx, UserLoginNotExist).Return(model.User{}, sql.ErrNoRows).AnyTimes()
-	//storage.EXPECT().GetUserByID(ctx, UserIdNotExist).Return(model.User{}, sql.ErrNoRows)
 	storage.EXPECT().GetUserByID(ctx, UserId1).Return(model.User{
 		ID:        UserId1,
 		Login:     UserLogin1,
 		Password:  userHashedPass1,
-		Balance:   50,
+		Balance:   balanceUser1,
 		CreatedAt: time.Now(),
 	}, nil).AnyTimes()
 
@@ -277,13 +308,12 @@ func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.M
 	)
 	storage.EXPECT().UploadOrder(ctx, UserId1, orderNotExisting).Return(nil).AnyTimes().AnyTimes()
 
-	//storage.EXPECT().GetOrderByNumber(ctx, orderExistingUser1).Return(model.Order{
-	//	ID:          5,
-	//	OrderNumber: orderExistingUser1,
-	//	UserId:      UserId1,
-	//	Status:      model.OrderStateProcessed,
-	//	UploadedAt:  time.Now(),
-	//	UpdatedAt:   sql.NullTime{},
-	//}, nil)
+	storage.EXPECT().GetWithdrawalsSumByUserId(ctx, UserId1).Return(withdrawalSumUser1, nil).AnyTimes()
+
+	storage.EXPECT().GetWithdrawalsByUserId(ctx, UserId1).Return([]model.Withdrawal{
+		withdrawalUser1,
+		withdrawalUser1a,
+	}, nil).AnyTimes()
+
 	return storage
 }

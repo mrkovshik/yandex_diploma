@@ -23,10 +23,6 @@ type (
 		cfg     *config.Config
 		Logger  *zap.SugaredLogger
 	}
-	getBalanceResponse struct {
-		Balance   float64 `json:"current"`
-		Withdrawn int     `json:"withdrawn"`
-	}
 )
 
 func NewBasicService(storage Storage, cfg *config.Config, logger *zap.SugaredLogger) Service {
@@ -144,16 +140,16 @@ func (s *basicService) Withdraw(ctx context.Context, withdrawal model.Withdrawal
 	return nil
 }
 
-func (s *basicService) GetBalance(ctx context.Context, userId uint) (getBalanceResponse, error) {
+func (s *basicService) GetBalance(ctx context.Context, userId uint) (model.GetBalanceResponse, error) {
 	user, err := s.storage.GetUserByID(ctx, userId)
 	if err != nil {
-		return getBalanceResponse{}, err
+		return model.GetBalanceResponse{}, err
 	}
 	withdrawn, err1 := s.storage.GetWithdrawalsSumByUserId(ctx, userId)
 	if err1 != nil {
-		return getBalanceResponse{}, err1
+		return model.GetBalanceResponse{}, err1
 	}
-	return getBalanceResponse{
+	return model.GetBalanceResponse{
 		Balance:   user.Balance,
 		Withdrawn: withdrawn,
 	}, nil
