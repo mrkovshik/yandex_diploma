@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
+	"github.com/mrkovshik/yandex_diploma/internal/appErrors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,17 +50,17 @@ func Test_service_GetOrderScore(t *testing.T) {
 			Order:   0,
 			Status:  "",
 			Accrual: 0,
-		}, app_errors.ErrNoSuchOrder},
+		}, appErrors.ErrNoSuchOrder},
 		{"3_neg", 789, Response{
 			Order:   0,
 			Status:  "",
 			Accrual: 0,
-		}, app_errors.ErrTooManyRetrials},
+		}, appErrors.ErrTooManyRetrials},
 		{"4_neg", 7819, Response{
 			Order:   0,
 			Status:  "",
 			Accrual: 0,
-		}, app_errors.ErrInvalidResponseCode},
+		}, appErrors.ErrInvalidResponseCode},
 	}
 
 	for _, tt := range tests {

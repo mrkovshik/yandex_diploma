@@ -10,13 +10,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
+	"github.com/mrkovshik/yandex_diploma/internal/appErrors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 )
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
 
-func (s *restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context) {
+func (s *restAPIServer) RegisterHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var user model.User
 		if err := c.BindJSON(&user); err != nil {
@@ -31,7 +31,7 @@ func (s *restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 		}
 
 		if err := s.service.Register(ctx, user.Login, user.Password); err != nil {
-			if errors.Is(err, app_errors.ErrUserAlreadyExists) {
+			if errors.Is(err, appErrors.ErrUserAlreadyExists) {
 				s.logger.Error("Register: ", err)
 				c.IndentedJSON(http.StatusConflict, gin.H{"error": err.Error()})
 				c.Abort()
@@ -45,7 +45,7 @@ func (s *restApiServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 	}
 }
 
-func (s *restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
+func (s *restAPIServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var user model.User
 
@@ -62,7 +62,7 @@ func (s *restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 
 		token, err := s.service.Login(ctx, user.Login, user.Password)
 		if err != nil {
-			if errors.Is(err, app_errors.ErrInvalidPassword) || errors.Is(err, sql.ErrNoRows) {
+			if errors.Is(err, appErrors.ErrInvalidPassword) || errors.Is(err, sql.ErrNoRows) {
 				s.logger.Error("Register: ", err)
 				c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 				c.Abort()
@@ -77,7 +77,7 @@ func (s *restApiServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 	}
 }
 
-func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Context) {
+func (s *restAPIServer) UploadOrderHandler(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		orderNumber, err := getOrderNumberFromContext(c)
 		if err != nil {
@@ -85,15 +85,15 @@ func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "Invalid order number"})
 			return
 		}
-		userId, err := getUserIdFromContext(c)
+		userID, err := getUserIDFromContext(c)
 		if err != nil {
-			s.logger.Errorf("getUserIdFromContext: %v", err)
+			s.logger.Errorf("getUserIDFromContext: %v", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
 			return
 		}
-		exist, err := s.service.UploadOrder(ctx, orderNumber, userId)
+		exist, err := s.service.UploadOrder(ctx, orderNumber, userID)
 		if err != nil {
-			if errors.Is(err, app_errors.ErrOrderIsUploadedByAnotherUser) {
+			if errors.Is(err, appErrors.ErrOrderIsUploadedByAnotherUser) {
 				s.logger.Error("UploadOrder", err)
 				c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
 				return
@@ -111,15 +111,15 @@ func (s *restApiServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 	}
 }
 
-func (s *restApiServer) GetOrders(ctx context.Context) func(c *gin.Context) {
+func (s *restAPIServer) GetOrders(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		userId, err := getUserIdFromContext(c)
+		userID, err := getUserIDFromContext(c)
 		if err != nil {
-			s.logger.Errorf("getUserIdFromContext: %v", err)
+			s.logger.Errorf("getUserIDFromContext: %v", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
 			return
 		}
-		orders, err := s.service.GetUserOrders(ctx, userId)
+		orders, err := s.service.GetUserOrders(ctx, userID)
 		if err != nil {
 			s.logger.Error("GetOrdersByUserID", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
@@ -134,11 +134,11 @@ func (s *restApiServer) GetOrders(ctx context.Context) func(c *gin.Context) {
 	}
 }
 
-func (s *restApiServer) Withdraw(ctx context.Context) func(c *gin.Context) {
+func (s *restAPIServer) Withdraw(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		userId, err := getUserIdFromContext(c)
+		userID, err := getUserIDFromContext(c)
 		if err != nil {
-			s.logger.Errorf("getUserIdFromContext: %v", err)
+			s.logger.Errorf("getUserIDFromContext: %v", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
 			return
 		}
@@ -169,10 +169,10 @@ func (s *restApiServer) Withdraw(ctx context.Context) func(c *gin.Context) {
 		withdrawal := model.Withdrawal{
 			Amount:      withdrawRequest.Amount,
 			OrderNumber: withdrawRequest.OrderNumber,
-			UserId:      userId,
+			UserID:      userID,
 		}
 		if err := s.service.Withdraw(ctx, withdrawal); err != nil {
-			if errors.Is(err, app_errors.ErrNotEnoughFunds) {
+			if errors.Is(err, appErrors.ErrNotEnoughFunds) {
 				s.logger.Error("Withdraw", err)
 				c.IndentedJSON(http.StatusPaymentRequired, gin.H{"message": err.Error()})
 				c.Abort()
@@ -186,15 +186,15 @@ func (s *restApiServer) Withdraw(ctx context.Context) func(c *gin.Context) {
 	}
 }
 
-func (s *restApiServer) GetBalance(ctx context.Context) func(c *gin.Context) {
+func (s *restAPIServer) GetBalance(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		userId, err := getUserIdFromContext(c)
+		userID, err := getUserIDFromContext(c)
 		if err != nil {
-			s.logger.Errorf("getUserIdFromContext: %v", err)
+			s.logger.Errorf("getUserIDFromContext: %v", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
 			return
 		}
-		balance, err1 := s.service.GetBalance(ctx, userId)
+		balance, err1 := s.service.GetBalance(ctx, userID)
 		if err1 != nil {
 			s.logger.Errorf("GetBalance: %v", err1)
 			c.AbortWithStatus(http.StatusInternalServerError)
@@ -204,15 +204,15 @@ func (s *restApiServer) GetBalance(ctx context.Context) func(c *gin.Context) {
 	}
 }
 
-func (s *restApiServer) ListWithdrawals(ctx context.Context) func(c *gin.Context) {
+func (s *restAPIServer) ListWithdrawals(ctx context.Context) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		userId, err := getUserIdFromContext(c)
+		userID, err := getUserIDFromContext(c)
 		if err != nil {
-			s.logger.Errorf("getUserIdFromContext: %v", err)
+			s.logger.Errorf("getUserIDFromContext: %v", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
 			return
 		}
-		withdrawals, err1 := s.service.LisUserWithdrawals(ctx, userId)
+		withdrawals, err1 := s.service.LisUserWithdrawals(ctx, userID)
 		if err1 != nil {
 			s.logger.Errorf("GetBalance: %v", err1)
 			c.AbortWithStatus(http.StatusInternalServerError)
@@ -241,14 +241,14 @@ func getOrderNumberFromContext(c *gin.Context) (uint, error) {
 	return uint(number), nil
 }
 
-func getUserIdFromContext(c *gin.Context) (uint, error) {
-	userId, exist := c.Get("userId")
+func getUserIDFromContext(c *gin.Context) (uint, error) {
+	userID, exist := c.Get("userID")
 	if !exist {
-		return 0, errors.New("no userId")
+		return 0, errors.New("no userID")
 	}
-	userIdUint, ok := userId.(uint)
+	userIDUint, ok := userID.(uint)
 	if !ok {
-		return 0, errors.New("error casting userId")
+		return 0, errors.New("error casting userID")
 	}
-	return userIdUint, nil
+	return userIDUint, nil
 }

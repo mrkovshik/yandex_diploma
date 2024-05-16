@@ -138,34 +138,34 @@ func (mr *MockStorageMockRecorder) GetUserByLogin(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByLogin", reflect.TypeOf((*MockStorage)(nil).GetUserByLogin), arg0, arg1)
 }
 
-// GetWithdrawalsByUserId mocks base method.
-func (m *MockStorage) GetWithdrawalsByUserId(arg0 context.Context, arg1 uint) ([]model.Withdrawal, error) {
+// GetWithdrawalsByUserID mocks base method.
+func (m *MockStorage) GetWithdrawalsByUserID(arg0 context.Context, arg1 uint) ([]model.Withdrawal, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetWithdrawalsByUserId", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetWithdrawalsByUserID", arg0, arg1)
 	ret0, _ := ret[0].([]model.Withdrawal)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetWithdrawalsByUserId indicates an expected call of GetWithdrawalsByUserId.
-func (mr *MockStorageMockRecorder) GetWithdrawalsByUserId(arg0, arg1 interface{}) *gomock.Call {
+// GetWithdrawalsByUserID indicates an expected call of GetWithdrawalsByUserID.
+func (mr *MockStorageMockRecorder) GetWithdrawalsByUserID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawalsByUserId", reflect.TypeOf((*MockStorage)(nil).GetWithdrawalsByUserId), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawalsByUserID", reflect.TypeOf((*MockStorage)(nil).GetWithdrawalsByUserID), arg0, arg1)
 }
 
-// GetWithdrawalsSumByUserId mocks base method.
-func (m *MockStorage) GetWithdrawalsSumByUserId(arg0 context.Context, arg1 uint) (int, error) {
+// GetWithdrawalsSumByUserID mocks base method.
+func (m *MockStorage) GetWithdrawalsSumByUserID(arg0 context.Context, arg1 uint) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetWithdrawalsSumByUserId", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetWithdrawalsSumByUserID", arg0, arg1)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetWithdrawalsSumByUserId indicates an expected call of GetWithdrawalsSumByUserId.
-func (mr *MockStorageMockRecorder) GetWithdrawalsSumByUserId(arg0, arg1 interface{}) *gomock.Call {
+// GetWithdrawalsSumByUserID indicates an expected call of GetWithdrawalsSumByUserID.
+func (mr *MockStorageMockRecorder) GetWithdrawalsSumByUserID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawalsSumByUserId", reflect.TypeOf((*MockStorage)(nil).GetWithdrawalsSumByUserId), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawalsSumByUserID", reflect.TypeOf((*MockStorage)(nil).GetWithdrawalsSumByUserID), arg0, arg1)
 }
 
 // ProcessWithdrawal mocks base method.

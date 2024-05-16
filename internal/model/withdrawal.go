@@ -7,5 +7,5 @@ type Withdrawal struct {
 	Amount      int       `db:"amount" json:"sum"`
 	ProcessedAt time.Time `db:"processed_at" json:"processed_at"`
 	OrderNumber string    `db:"order_number" json:"order"`
-	UserId      uint      `db:"user_id" json:"-"`
+	UserID      uint      `db:"user_id" json:"-"`
 }

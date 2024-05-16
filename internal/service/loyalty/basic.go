@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
+	"github.com/mrkovshik/yandex_diploma/internal/appErrors"
 	"github.com/mrkovshik/yandex_diploma/internal/auth"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 )
@@ -50,7 +50,7 @@ func (s *basicService) Login(ctx context.Context, login, password string) (strin
 		return "", err
 	}
 	if !checkPasswordHash(password, user.Password) {
-		return "", app_errors.ErrInvalidPassword
+		return "", appErrors.ErrInvalidPassword
 	}
 	authSrv := auth.NewAuthService(s.cfg.SecretKey, s.cfg.TokenExp)
 	token, err := authSrv.GenerateToken(user.ID)
@@ -60,21 +60,21 @@ func (s *basicService) Login(ctx context.Context, login, password string) (strin
 	return token, nil
 }
 
-func (s *basicService) UploadOrder(ctx context.Context, orderNumber, userId uint) (bool, error) {
+func (s *basicService) UploadOrder(ctx context.Context, orderNumber, userID uint) (bool, error) {
 	order, err := s.storage.GetOrderByNumber(ctx, orderNumber)
 
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return false, err
 		}
-		if err := s.storage.UploadOrder(ctx, userId, orderNumber); err != nil {
+		if err := s.storage.UploadOrder(ctx, userID, orderNumber); err != nil {
 			return false, err
 		}
 		return false, nil
 	}
 
-	if order.UserId != userId {
-		return false, app_errors.ErrOrderIsUploadedByAnotherUser
+	if order.UserID != userID {
+		return false, appErrors.ErrOrderIsUploadedByAnotherUser
 	}
 	return true, nil
 }
@@ -125,8 +125,8 @@ func (s *basicService) UpdatePendingOrders(ctx context.Context) error {
 	return nil
 }
 
-func (s *basicService) GetUserOrders(ctx context.Context, userId uint) ([]model.Order, error) {
-	orders, err := s.storage.GetOrdersByUserID(ctx, userId)
+func (s *basicService) GetUserOrders(ctx context.Context, userID uint) ([]model.Order, error) {
+	orders, err := s.storage.GetOrdersByUserID(ctx, userID)
 	if err != nil {
 		return []model.Order{}, err
 	}
@@ -140,12 +140,12 @@ func (s *basicService) Withdraw(ctx context.Context, withdrawal model.Withdrawal
 	return nil
 }
 
-func (s *basicService) GetBalance(ctx context.Context, userId uint) (model.GetBalanceResponse, error) {
-	user, err := s.storage.GetUserByID(ctx, userId)
+func (s *basicService) GetBalance(ctx context.Context, userID uint) (model.GetBalanceResponse, error) {
+	user, err := s.storage.GetUserByID(ctx, userID)
 	if err != nil {
 		return model.GetBalanceResponse{}, err
 	}
-	withdrawn, err1 := s.storage.GetWithdrawalsSumByUserId(ctx, userId)
+	withdrawn, err1 := s.storage.GetWithdrawalsSumByUserID(ctx, userID)
 	if err1 != nil {
 		return model.GetBalanceResponse{}, err1
 	}
@@ -155,9 +155,9 @@ func (s *basicService) GetBalance(ctx context.Context, userId uint) (model.GetBa
 	}, nil
 }
 
-func (s *basicService) LisUserWithdrawals(ctx context.Context, userId uint) ([]model.Withdrawal, error) {
+func (s *basicService) LisUserWithdrawals(ctx context.Context, userID uint) ([]model.Withdrawal, error) {
 
-	withdrawals, err := s.storage.GetWithdrawalsByUserId(ctx, userId)
+	withdrawals, err := s.storage.GetWithdrawalsByUserID(ctx, userID)
 	if err != nil {
 		return []model.Withdrawal{}, err
 	}
@@ -174,11 +174,11 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func (s *basicService) worker(ctx context.Context, workerId int, jobs <-chan uint) {
+func (s *basicService) worker(ctx context.Context, workerID int, jobs <-chan uint) {
 	for orderNumber := range jobs {
 
 		if err := s.UpdateOrderAccrual(ctx, orderNumber); err != nil {
-			s.Logger.Errorf("failed to update order #%v by worker #%v", orderNumber, workerId)
+			s.Logger.Errorf("failed to update order #%v by worker #%v", orderNumber, workerID)
 			return
 		}
 	}

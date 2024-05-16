@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
+	"github.com/mrkovshik/yandex_diploma/internal/appErrors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 )
 
@@ -36,7 +36,7 @@ func (s service) GetOrderAccrual(orderNumber uint) (Response, error) {
 		SetRetryWaitTime(5 * time.Second).
 		SetRetryMaxWaitTime(20 * time.Second).
 		SetRetryAfter(func(client *resty.Client, resp *resty.Response) (time.Duration, error) {
-			return 0, app_errors.ErrTooManyRetrials
+			return 0, appErrors.ErrTooManyRetrials
 		})
 	client.AddRetryCondition(
 		func(r *resty.Response, err error) bool {
@@ -49,9 +49,9 @@ func (s service) GetOrderAccrual(orderNumber uint) (Response, error) {
 	}
 	if resp.StatusCode() != http.StatusOK {
 		if resp.StatusCode() == http.StatusNoContent {
-			return Response{}, app_errors.ErrNoSuchOrder
+			return Response{}, appErrors.ErrNoSuchOrder
 		}
-		return Response{}, app_errors.ErrInvalidResponseCode
+		return Response{}, appErrors.ErrInvalidResponseCode
 	}
 	if err := json.Unmarshal(resp.Body(), &orderResponse); err != nil {
 		return Response{}, err

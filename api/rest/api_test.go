@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 
-	"github.com/mrkovshik/yandex_diploma/internal/app_errors"
+	"github.com/mrkovshik/yandex_diploma/internal/appErrors"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 	"github.com/mrkovshik/yandex_diploma/internal/service/accrual/mock"
@@ -35,9 +35,9 @@ const (
 	UserLogin1               = "JohnDow"
 	UserPass1                = "qwerty"
 	userHashedPass1          = "$2a$10$XVc79vBoRda4wdsx/uqMd.obXNtIbOvGttqUsgfBC4YfvuoD0fvrG"
-	UserId1                  = uint(123)
-	UserId2                  = uint(1232)
-	UserIdNotExist           = uint(456)
+	UserID1                  = uint(123)
+	UserID2                  = uint(1232)
+	UserIDNotExist           = uint(456)
 	withdrawalSumUser1       = 555
 	balanceUser1             = float64(1000)
 )
@@ -48,7 +48,7 @@ var (
 		Amount:      300,
 		ProcessedAt: time.Now(),
 		OrderNumber: fmt.Sprint(orderExistingUser1),
-		UserId:      UserId1,
+		UserID:      UserID1,
 	}
 	withdrawalUser1a = model.Withdrawal{
 
@@ -56,11 +56,11 @@ var (
 		Amount:      500,
 		ProcessedAt: time.Now(),
 		OrderNumber: fmt.Sprint(orderExistingUser1),
-		UserId:      UserId1,
+		UserID:      UserID1,
 	}
 )
 
-func Test_restApiServer_RunServer(t *testing.T) {
+func Test_restAPIServer_RunServer(t *testing.T) {
 	var authToken tokenResp
 	logger, err := zap.NewDevelopment()
 	if err != nil {
@@ -80,7 +80,7 @@ func Test_restApiServer_RunServer(t *testing.T) {
 	defer ctrl.Finish()
 	mockStorage := defineStorage(ctx, ctrl)
 	service := loyalty.NewBasicService(mockStorage, cfg, sugar)
-	srv := NewRestApiServer(service, mockStorage, cfg, sugar)
+	srv := NewRestAPIServer(service, mockStorage, cfg, sugar)
 	go func() {
 		if err := srv.RunServer(ctx); err != nil {
 			return
@@ -243,15 +243,15 @@ func Test_restApiServer_RunServer(t *testing.T) {
 func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.MockStorage {
 	storage := mock_loyalty.NewMockStorage(ctrl)
 	storage.EXPECT().GetUserByLogin(ctx, UserLogin1).Return(model.User{
-		ID:        UserId1,
+		ID:        UserID1,
 		Login:     UserLogin1,
 		Password:  userHashedPass1,
 		Balance:   balanceUser1,
 		CreatedAt: time.Now(),
 	}, nil).AnyTimes()
 	storage.EXPECT().GetUserByLogin(ctx, UserLoginNotExist).Return(model.User{}, sql.ErrNoRows).AnyTimes()
-	storage.EXPECT().GetUserByID(ctx, UserId1).Return(model.User{
-		ID:        UserId1,
+	storage.EXPECT().GetUserByID(ctx, UserID1).Return(model.User{
+		ID:        UserID1,
 		Login:     UserLogin1,
 		Password:  userHashedPass1,
 		Balance:   balanceUser1,
@@ -259,13 +259,13 @@ func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.M
 	}, nil).AnyTimes()
 
 	storage.EXPECT().AddUser(ctx, UserLoginNotExist, gomock.Any()).Return(nil).AnyTimes()
-	storage.EXPECT().AddUser(ctx, UserLogin1, gomock.Any()).Return(app_errors.ErrUserAlreadyExists).AnyTimes()
+	storage.EXPECT().AddUser(ctx, UserLogin1, gomock.Any()).Return(appErrors.ErrUserAlreadyExists).AnyTimes()
 
 	storage.EXPECT().GetOrderByNumber(ctx, orderNotExisting).Return(model.Order{}, sql.ErrNoRows).AnyTimes()
 	storage.EXPECT().GetOrderByNumber(ctx, orderExistingUser1).Return(model.Order{
 		ID:          878,
 		OrderNumber: orderExistingUser1,
-		UserId:      UserId1,
+		UserID:      UserID1,
 		Status:      model.OrderStateProcessed,
 		UploadedAt:  time.Now(),
 		Accrual:     1000,
@@ -273,44 +273,44 @@ func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.M
 	storage.EXPECT().GetOrderByNumber(ctx, orderExistingUser2).Return(model.Order{
 		ID:          878,
 		OrderNumber: orderExistingUser2,
-		UserId:      UserId2,
+		UserID:      UserID2,
 		Status:      model.OrderStateProcessed,
 		UploadedAt:  time.Now(),
 		Accrual:     1000,
 	}, nil).AnyTimes()
 	gomock.InOrder(
 
-		storage.EXPECT().GetOrdersByUserID(ctx, UserId1).Return([]model.Order{
+		storage.EXPECT().GetOrdersByUserID(ctx, UserID1).Return([]model.Order{
 			{
 				ID:          878,
 				OrderNumber: orderExistingUser2,
-				UserId:      UserId2,
+				UserID:      UserID2,
 				Status:      model.OrderStateInvalid,
 				UploadedAt:  time.Now(),
 			},
 			{
 				ID:          234,
 				OrderNumber: orderExistingUser1,
-				UserId:      UserId2,
+				UserID:      UserID2,
 				Status:      model.OrderStateProcessing,
 				UploadedAt:  time.Now(),
 			},
 			{
 				ID:          8543,
 				OrderNumber: orderNotExisting,
-				UserId:      UserId2,
+				UserID:      UserID2,
 				Status:      model.OrderStateProcessed,
 				UploadedAt:  time.Now(),
 				Accrual:     1000,
 			},
 		}, nil),
-		storage.EXPECT().GetOrdersByUserID(ctx, UserId1).Return([]model.Order{}, nil).AnyTimes(),
+		storage.EXPECT().GetOrdersByUserID(ctx, UserID1).Return([]model.Order{}, nil).AnyTimes(),
 	)
-	storage.EXPECT().UploadOrder(ctx, UserId1, orderNotExisting).Return(nil).AnyTimes().AnyTimes()
+	storage.EXPECT().UploadOrder(ctx, UserID1, orderNotExisting).Return(nil).AnyTimes().AnyTimes()
 
-	storage.EXPECT().GetWithdrawalsSumByUserId(ctx, UserId1).Return(withdrawalSumUser1, nil).AnyTimes()
+	storage.EXPECT().GetWithdrawalsSumByUserId(ctx, UserID1).Return(withdrawalSumUser1, nil).AnyTimes()
 
-	storage.EXPECT().GetWithdrawalsByUserId(ctx, UserId1).Return([]model.Withdrawal{
+	storage.EXPECT().GetWithdrawalsByUserId(ctx, UserID1).Return([]model.Withdrawal{
 		withdrawalUser1,
 		withdrawalUser1a,
 	}, nil).AnyTimes()

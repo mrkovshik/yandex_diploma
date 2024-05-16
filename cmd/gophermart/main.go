@@ -76,7 +76,7 @@ func main() {
 	db.MustExec(schema)
 	storage := postgres.NewStorage(db)
 	service := loyalty.NewBasicService(storage, cfg, sugar)
-	srv := rest.NewRestApiServer(service, storage, cfg, sugar)
+	srv := rest.NewRestAPIServer(service, storage, cfg, sugar)
 
 	accrualTicker := time.NewTicker(accrualInterval)
 	go func() {
