@@ -30,7 +30,8 @@ func (s *restAPIServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 			return
 		}
 
-		if err := s.service.Register(ctx, user.Login, user.Password); err != nil {
+		token, err := s.service.Register(ctx, user.Login, user.Password)
+		if err != nil {
 			if errors.Is(err, apperrors.ErrUserAlreadyExists) {
 				s.logger.Error("Register: ", err)
 				c.IndentedJSON(http.StatusConflict, gin.H{"error": err.Error()})
@@ -41,7 +42,7 @@ func (s *restAPIServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		c.IndentedJSON(http.StatusOK, gin.H{"message": "user successfully registered"})
+		c.IndentedJSON(http.StatusOK, gin.H{"token": token})
 	}
 }
 
@@ -63,13 +64,13 @@ func (s *restAPIServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 		token, err := s.service.Login(ctx, user.Login, user.Password)
 		if err != nil {
 			if errors.Is(err, apperrors.ErrInvalidPassword) || errors.Is(err, sql.ErrNoRows) {
-				s.logger.Error("Register: ", err)
+				s.logger.Error("Login: ", err)
 				c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 				c.Abort()
 				return
 			}
 
-			s.logger.Error("Register: ", err)
+			s.logger.Error("Login: ", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}

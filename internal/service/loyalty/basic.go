@@ -33,15 +33,18 @@ func NewBasicService(storage Storage, cfg *config.Config, logger *zap.SugaredLog
 	}
 }
 
-func (s *basicService) Register(ctx context.Context, login, password string) error {
+func (s *basicService) Register(ctx context.Context, login, password string) (string, error) {
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
-		return err
+		return "", err
 	}
-	if err := s.storage.AddUser(ctx, login, hashedPassword); err != nil {
-		return err
+	userID, err := s.storage.AddUser(ctx, login, hashedPassword)
+	if err != nil {
+		return "", err
 	}
-	return nil
+	authSrv := auth.NewAuthService(s.cfg.SecretKey, s.cfg.TokenExp)
+	token, err := authSrv.GenerateToken(userID)
+	return token, nil
 }
 
 func (s *basicService) Login(ctx context.Context, login, password string) (string, error) {

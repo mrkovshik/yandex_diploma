@@ -75,6 +75,7 @@ func main() {
 	}()
 
 	if err := srv.RunServer(ctx); err != nil {
+		sugar.Fatal(err)
 	}
 	sugar.Fatal("RunServer", err)
 }

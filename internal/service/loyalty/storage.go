@@ -7,10 +7,9 @@ import (
 )
 
 type Storage interface {
-	AddUser(ctx context.Context, name, password string) error
+	AddUser(ctx context.Context, login, password string) (uint, error)
 	GetUserByLogin(ctx context.Context, login string) (user model.User, err error)
 	GetUserByID(ctx context.Context, id uint) (user model.User, err error)
-
 	UploadOrder(ctx context.Context, userID, orderNumber uint) error
 	GetOrderByNumber(ctx context.Context, orderNumber uint) (order model.Order, err error)
 	FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber uint, amount int) error

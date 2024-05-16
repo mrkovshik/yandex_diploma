@@ -61,18 +61,23 @@ func (s *Storage) FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber
 	return nil
 }
 
-func (s *Storage) AddUser(ctx context.Context, login, password string) (err error) {
-	_, err = s.GetUserByLogin(ctx, login)
+func (s *Storage) AddUser(ctx context.Context, login, password string) (uint, error) {
+	_, err := s.GetUserByLogin(ctx, login)
 	if err == nil {
-		return apperrors.ErrUserAlreadyExists
+		return 0, apperrors.ErrUserAlreadyExists
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
-		return err
+		return 0, err
 	}
-	if _, err = s.db.ExecContext(ctx, "INSERT INTO users (login, password, created_at) VALUES ($1, $2, $3)", login, password, time.Now().UTC()); err != nil {
-		return
+	res, err := s.db.ExecContext(ctx, "INSERT INTO users (login, password, created_at) VALUES ($1, $2, $3)", login, password, time.Now().UTC())
+	if err != nil {
+		return 0, err
 	}
-	return
+	userID, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return uint(userID), nil
 }
 
 func (s *Storage) GetUserByLogin(ctx context.Context, login string) (user model.User, err error) {

@@ -36,11 +36,12 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 }
 
 // AddUser mocks base method.
-func (m *MockStorage) AddUser(arg0 context.Context, arg1, arg2 string) error {
+func (m *MockStorage) AddUser(arg0 context.Context, arg1, arg2 string) (uint, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddUser", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(uint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddUser indicates an expected call of AddUser.

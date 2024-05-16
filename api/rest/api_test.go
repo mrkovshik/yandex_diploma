@@ -95,6 +95,9 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 			Post(fmt.Sprintf("http://%v/api/user/register", cfg.RunAddress))
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
+		err1 := json.Unmarshal(resp.Body(), &authToken)
+		assert.NoError(t, err1)
+		assert.NotEqual(t, 0, len(authToken.Token))
 
 		//User already exist
 		resp, err = client.R().SetHeader("Content-Type", "application/json").
@@ -126,9 +129,9 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 			SetBody(fmt.Sprintf(`{"login":"%v", "password":"%v"}`, UserLogin1, UserPass1)).
 			Post(fmt.Sprintf("http://%v/api/user/login", cfg.RunAddress))
 		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
 		err1 := json.Unmarshal(resp.Body(), &authToken)
 		assert.NoError(t, err1)
-		assert.Equal(t, http.StatusOK, resp.StatusCode())
 
 		//User is not exist
 		resp, err = client.R().SetHeader("Content-Type", "application/json").
@@ -256,8 +259,8 @@ func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.M
 		CreatedAt: time.Now(),
 	}, nil).AnyTimes()
 
-	storage.EXPECT().AddUser(ctx, UserLoginNotExist, gomock.Any()).Return(nil).AnyTimes()
-	storage.EXPECT().AddUser(ctx, UserLogin1, gomock.Any()).Return(apperrors.ErrUserAlreadyExists).AnyTimes()
+	storage.EXPECT().AddUser(ctx, UserLoginNotExist, gomock.Any()).Return(UserID1, nil).AnyTimes()
+	storage.EXPECT().AddUser(ctx, UserLogin1, gomock.Any()).Return(uint(0), apperrors.ErrUserAlreadyExists).AnyTimes()
 
 	storage.EXPECT().GetOrderByNumber(ctx, orderNotExisting).Return(model.Order{}, sql.ErrNoRows).AnyTimes()
 	storage.EXPECT().GetOrderByNumber(ctx, orderExistingUser1).Return(model.Order{
