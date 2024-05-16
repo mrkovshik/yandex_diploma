@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/mrkovshik/yandex_diploma/internal/appErrors"
+	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 	server "github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 )
@@ -20,9 +20,9 @@ func NewStorage(db *sqlx.DB) server.Storage {
 	return &Storage{db: db}
 }
 
-func (s *Storage) UploadOrder(ctx context.Context, userId, number uint) error {
+func (s *Storage) UploadOrder(ctx context.Context, userID, number uint) error {
 	if _, err := s.db.ExecContext(ctx, "INSERT INTO orders (order_number, user_id, status, uploaded_at) VALUES ($1, $2, $3, $4)",
-		number, userId, model.OrderStateNew, time.Now().UTC()); err != nil {
+		number, userID, model.OrderStateNew, time.Now().UTC()); err != nil {
 		return err
 	}
 	return nil
@@ -64,7 +64,7 @@ func (s *Storage) FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber
 func (s *Storage) AddUser(ctx context.Context, login, password string) (err error) {
 	_, err = s.GetUserByLogin(ctx, login)
 	if err == nil {
-		return appErrors.ErrUserAlreadyExists
+		return apperrors.ErrUserAlreadyExists
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
 		return err
@@ -85,8 +85,8 @@ func (s *Storage) GetUserByID(ctx context.Context, id uint) (user model.User, er
 	return
 }
 
-func (s *Storage) GetOrdersByUserID(ctx context.Context, userId uint) (orders []model.Order, err error) {
-	err = s.db.SelectContext(ctx, &orders, "SELECT * FROM orders WHERE user_id=$1", userId)
+func (s *Storage) GetOrdersByUserID(ctx context.Context, userID uint) (orders []model.Order, err error) {
+	err = s.db.SelectContext(ctx, &orders, "SELECT * FROM orders WHERE user_id=$1", userID)
 	return
 }
 
@@ -113,9 +113,9 @@ func (s *Storage) ProcessWithdrawal(ctx context.Context, withdrawal model.Withdr
 	return nil
 }
 
-func (s *Storage) GetWithdrawalsSumByUserID(ctx context.Context, userId uint) (int, error) {
+func (s *Storage) GetWithdrawalsSumByUserID(ctx context.Context, userID uint) (int, error) {
 	var sums []int
-	err := s.db.SelectContext(ctx, &sums, "SELECT SUM(amount) FROM withdrawals WHERE withdrawals.user_id = $1 group by user_id", userId)
+	err := s.db.SelectContext(ctx, &sums, "SELECT SUM(amount) FROM withdrawals WHERE withdrawals.user_id = $1 group by user_id", userID)
 	if err != nil {
 		return 0, err
 	}
@@ -123,8 +123,8 @@ func (s *Storage) GetWithdrawalsSumByUserID(ctx context.Context, userId uint) (i
 	return sums[0], nil
 }
 
-func (s *Storage) GetWithdrawalsByUserID(ctx context.Context, userId uint) (withdrawals []model.Withdrawal, err error) {
-	err = s.db.SelectContext(ctx, &withdrawals, "SELECT * FROM withdrawals WHERE user_id = $1", userId)
+func (s *Storage) GetWithdrawalsByUserID(ctx context.Context, userID uint) (withdrawals []model.Withdrawal, err error) {
+	err = s.db.SelectContext(ctx, &withdrawals, "SELECT * FROM withdrawals WHERE user_id = $1", userID)
 	return
 }
 
@@ -136,7 +136,7 @@ func (s *Storage) updateUserBalanceByOrderNumberTx(ctx context.Context, orderNum
 	}
 	newBalance := user.Balance + float64(amount)
 	if newBalance < 0 {
-		return appErrors.ErrNotEnoughFunds
+		return apperrors.ErrNotEnoughFunds
 	}
 
 	if _, err := tx.ExecContext(ctx, "UPDATE users SET balance = $1 WHERE id = $2;", newBalance, user.ID); err != nil {
@@ -145,15 +145,15 @@ func (s *Storage) updateUserBalanceByOrderNumberTx(ctx context.Context, orderNum
 	return nil
 }
 
-func (s *Storage) updateUserBalanceByUserIDTx(ctx context.Context, userId uint, amount int, tx *sqlx.Tx) error {
-	user, err := s.getUserByUserIdTx(ctx, userId, tx)
+func (s *Storage) updateUserBalanceByUserIDTx(ctx context.Context, userID uint, amount int, tx *sqlx.Tx) error {
+	user, err := s.getUserByUserIDTx(ctx, userID, tx)
 	if err != nil {
 		return err
 	}
 
 	newBalance := user.Balance + float64(amount)
 	if newBalance < 0 {
-		return appErrors.ErrNotEnoughFunds
+		return apperrors.ErrNotEnoughFunds
 	}
 
 	if _, err := tx.ExecContext(ctx, "UPDATE users SET balance = $1 WHERE id = $2;", newBalance, user.ID); err != nil {
@@ -182,8 +182,8 @@ func (s *Storage) getUserByOrderNumberTx(ctx context.Context, id uint, tx *sqlx.
 	return
 }
 
-func (s *Storage) getUserByUserIdTx(ctx context.Context, userId uint, tx *sqlx.Tx) (user model.User, err error) {
-	err = tx.GetContext(ctx, &user, "SELECT * FROM users  WHERE id =$1", userId)
+func (s *Storage) getUserByUserIDTx(ctx context.Context, userID uint, tx *sqlx.Tx) (user model.User, err error) {
+	err = tx.GetContext(ctx, &user, "SELECT * FROM users  WHERE id =$1", userID)
 	return
 }
 

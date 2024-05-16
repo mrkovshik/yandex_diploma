@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/mrkovshik/yandex_diploma/internal/appErrors"
+	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 )
 
@@ -31,7 +31,7 @@ func (s *restAPIServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 		}
 
 		if err := s.service.Register(ctx, user.Login, user.Password); err != nil {
-			if errors.Is(err, appErrors.ErrUserAlreadyExists) {
+			if errors.Is(err, apperrors.ErrUserAlreadyExists) {
 				s.logger.Error("Register: ", err)
 				c.IndentedJSON(http.StatusConflict, gin.H{"error": err.Error()})
 				c.Abort()
@@ -62,7 +62,7 @@ func (s *restAPIServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 
 		token, err := s.service.Login(ctx, user.Login, user.Password)
 		if err != nil {
-			if errors.Is(err, appErrors.ErrInvalidPassword) || errors.Is(err, sql.ErrNoRows) {
+			if errors.Is(err, apperrors.ErrInvalidPassword) || errors.Is(err, sql.ErrNoRows) {
 				s.logger.Error("Register: ", err)
 				c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 				c.Abort()
@@ -93,7 +93,7 @@ func (s *restAPIServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 		}
 		exist, err := s.service.UploadOrder(ctx, orderNumber, userID)
 		if err != nil {
-			if errors.Is(err, appErrors.ErrOrderIsUploadedByAnotherUser) {
+			if errors.Is(err, apperrors.ErrOrderIsUploadedByAnotherUser) {
 				s.logger.Error("UploadOrder", err)
 				c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
 				return
@@ -172,7 +172,7 @@ func (s *restAPIServer) Withdraw(ctx context.Context) func(c *gin.Context) {
 			UserID:      userID,
 		}
 		if err := s.service.Withdraw(ctx, withdrawal); err != nil {
-			if errors.Is(err, appErrors.ErrNotEnoughFunds) {
+			if errors.Is(err, apperrors.ErrNotEnoughFunds) {
 				s.logger.Error("Withdraw", err)
 				c.IndentedJSON(http.StatusPaymentRequired, gin.H{"message": err.Error()})
 				c.Abort()

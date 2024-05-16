@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 
-	"github.com/mrkovshik/yandex_diploma/internal/appErrors"
+	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 	"github.com/mrkovshik/yandex_diploma/internal/service/accrual/mock"
@@ -259,7 +259,7 @@ func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.M
 	}, nil).AnyTimes()
 
 	storage.EXPECT().AddUser(ctx, UserLoginNotExist, gomock.Any()).Return(nil).AnyTimes()
-	storage.EXPECT().AddUser(ctx, UserLogin1, gomock.Any()).Return(appErrors.ErrUserAlreadyExists).AnyTimes()
+	storage.EXPECT().AddUser(ctx, UserLogin1, gomock.Any()).Return(apperrors.ErrUserAlreadyExists).AnyTimes()
 
 	storage.EXPECT().GetOrderByNumber(ctx, orderNotExisting).Return(model.Order{}, sql.ErrNoRows).AnyTimes()
 	storage.EXPECT().GetOrderByNumber(ctx, orderExistingUser1).Return(model.Order{
@@ -308,9 +308,9 @@ func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.M
 	)
 	storage.EXPECT().UploadOrder(ctx, UserID1, orderNotExisting).Return(nil).AnyTimes().AnyTimes()
 
-	storage.EXPECT().GetWithdrawalsSumByUserId(ctx, UserID1).Return(withdrawalSumUser1, nil).AnyTimes()
+	storage.EXPECT().GetWithdrawalsSumByUserID(ctx, UserID1).Return(withdrawalSumUser1, nil).AnyTimes()
 
-	storage.EXPECT().GetWithdrawalsByUserId(ctx, UserID1).Return([]model.Withdrawal{
+	storage.EXPECT().GetWithdrawalsByUserID(ctx, UserID1).Return([]model.Withdrawal{
 		withdrawalUser1,
 		withdrawalUser1a,
 	}, nil).AnyTimes()

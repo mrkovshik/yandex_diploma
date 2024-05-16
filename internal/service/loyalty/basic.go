@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/mrkovshik/yandex_diploma/internal/appErrors"
+	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/auth"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 )
@@ -50,7 +50,7 @@ func (s *basicService) Login(ctx context.Context, login, password string) (strin
 		return "", err
 	}
 	if !checkPasswordHash(password, user.Password) {
-		return "", appErrors.ErrInvalidPassword
+		return "", apperrors.ErrInvalidPassword
 	}
 	authSrv := auth.NewAuthService(s.cfg.SecretKey, s.cfg.TokenExp)
 	token, err := authSrv.GenerateToken(user.ID)
@@ -74,7 +74,7 @@ func (s *basicService) UploadOrder(ctx context.Context, orderNumber, userID uint
 	}
 
 	if order.UserID != userID {
-		return false, appErrors.ErrOrderIsUploadedByAnotherUser
+		return false, apperrors.ErrOrderIsUploadedByAnotherUser
 	}
 	return true, nil
 }
