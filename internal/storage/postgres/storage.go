@@ -69,15 +69,14 @@ func (s *Storage) AddUser(ctx context.Context, login, password string) (uint, er
 	if !errors.Is(err, sql.ErrNoRows) {
 		return 0, err
 	}
-	res, err := s.db.ExecContext(ctx, "INSERT INTO users (login, password, created_at) VALUES ($1, $2, $3)", login, password, time.Now().UTC())
-	if err != nil {
+	if _, err := s.db.ExecContext(ctx, "INSERT INTO users (login, password, created_at) VALUES ($1, $2, $3)", login, password, time.Now().UTC()); err != nil {
 		return 0, err
 	}
-	userID, err := res.LastInsertId()
-	if err != nil {
-		return 0, err
+	user, err1 := s.GetUserByLogin(ctx, login)
+	if err1 != nil {
+		return 0, err1
 	}
-	return uint(userID), nil
+	return user.ID, nil
 }
 
 func (s *Storage) GetUserByLogin(ctx context.Context, login string) (user model.User, err error) {
