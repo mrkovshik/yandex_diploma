@@ -27,19 +27,17 @@ type tokenResp struct {
 }
 
 const (
-	UserLoginNotExist        = "none"
-	orderExistingUser1       = uint(123456789049)
-	orderExistingUser2       = uint(123456789015)
-	orderNotExisting         = uint(123456789007)
-	NumberForTooManyRequests = uint(2468013579)
-	UserLogin1               = "JohnDow"
-	UserPass1                = "qwerty"
-	userHashedPass1          = "$2a$10$XVc79vBoRda4wdsx/uqMd.obXNtIbOvGttqUsgfBC4YfvuoD0fvrG"
-	UserID1                  = uint(123)
-	UserID2                  = uint(1232)
-	UserIDNotExist           = uint(456)
-	withdrawalSumUser1       = 555
-	balanceUser1             = float64(1000)
+	UserLoginNotExist  = "none"
+	orderExistingUser1 = uint(123456789049)
+	orderExistingUser2 = uint(123456789015)
+	orderNotExisting   = uint(123456789007)
+	UserLogin1         = "JohnDow"
+	UserPass1          = "qwerty"
+	userHashedPass1    = "$2a$10$XVc79vBoRda4wdsx/uqMd.obXNtIbOvGttqUsgfBC4YfvuoD0fvrG"
+	UserID1            = uint(123)
+	UserID2            = uint(1232)
+	withdrawalSumUser1 = 555
+	balanceUser1       = float64(1000)
 )
 
 var (

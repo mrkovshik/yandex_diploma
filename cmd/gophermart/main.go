@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -43,18 +42,6 @@ CREATE TABLE IF NOT EXISTS orders (
 	user_id int4 NOT NULL,
 	CONSTRAINT withdrawals_pk PRIMARY KEY (id)
 )`
-
-type Person struct {
-	FirstName string `db:"first_name"`
-	LastName  string `db:"last_name"`
-	Email     string
-}
-
-type Place struct {
-	Country string
-	City    sql.NullString
-	TelCode int
-}
 
 func main() {
 	logger, err := zap.NewDevelopment()
