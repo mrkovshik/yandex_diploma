@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"log"
 	"math/rand"
 	"net/http"
 	"time"
@@ -53,6 +54,7 @@ func Run(cfg *config.Config) {
 		}
 
 	})
-	r.Run(cfg.AccrualSystemAddress)
+	err := r.Run(cfg.AccrualSystemAddress)
+	log.Fatal(err)
 
 }
