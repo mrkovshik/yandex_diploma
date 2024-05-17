@@ -106,11 +106,11 @@ func (s *restAPIServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 			return
 		}
 		if exist {
-			c.IndentedJSON(http.StatusAccepted, gin.H{"message": "order is already uploaded"})
+			c.IndentedJSON(http.StatusOK, gin.H{"message": "order is already uploaded"})
 			c.Abort()
 			return
 		}
-		c.IndentedJSON(http.StatusOK, gin.H{"message": "order successfully uploaded"})
+		c.IndentedJSON(http.StatusAccepted, gin.H{"message": "order successfully uploaded"})
 	}
 }
 
