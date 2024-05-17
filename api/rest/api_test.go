@@ -32,7 +32,7 @@ const (
 	userHashedPass1    = "$2a$10$XVc79vBoRda4wdsx/uqMd.obXNtIbOvGttqUsgfBC4YfvuoD0fvrG"
 	UserID1            = uint(123)
 	UserID2            = uint(1232)
-	withdrawalSumUser1 = 555
+	withdrawalSumUser1 = 555.55
 	balanceUser1       = float64(1000)
 )
 

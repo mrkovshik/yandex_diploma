@@ -118,8 +118,8 @@ func (s *Storage) ProcessWithdrawal(ctx context.Context, withdrawal model.Withdr
 	return nil
 }
 
-func (s *Storage) GetWithdrawalsSumByUserID(ctx context.Context, userID uint) (int, error) {
-	var sums []int
+func (s *Storage) GetWithdrawalsSumByUserID(ctx context.Context, userID uint) (float64, error) {
+	var sums []float64
 	err := s.db.SelectContext(ctx, &sums, "SELECT SUM(amount) FROM withdrawals WHERE withdrawals.user_id = $1 group by user_id", userID)
 	if err != nil {
 		return 0, err
@@ -153,13 +153,13 @@ func (s *Storage) updateUserBalanceByOrderNumberTx(ctx context.Context, orderNum
 	return nil
 }
 
-func (s *Storage) updateUserBalanceByUserIDTx(ctx context.Context, userID uint, amount int, tx *sqlx.Tx) error {
+func (s *Storage) updateUserBalanceByUserIDTx(ctx context.Context, userID uint, amount float64, tx *sqlx.Tx) error {
 	user, err := s.getUserByUserIDTx(ctx, userID, tx)
 	if err != nil {
 		return err
 	}
 
-	newBalance := user.Balance + float64(amount)
+	newBalance := user.Balance + amount
 	if newBalance < 0 {
 		return apperrors.ErrNotEnoughFunds
 	}

@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -157,14 +156,8 @@ func (s *restAPIServer) Withdraw(ctx context.Context) func(c *gin.Context) {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
-		orderNumberInt, err := strconv.ParseUint(withdrawRequest.OrderNumber, 10, 64)
-		if err != nil {
-			s.logger.Error("ParseUint: ", err)
-			c.AbortWithStatus(http.StatusUnprocessableEntity)
-			return
-		}
 
-		if err := validate.Var(orderNumberInt, "required,luhn_checksum"); err != nil {
+		if err := validate.Var(withdrawRequest.OrderNumber, "required,luhn_checksum"); err != nil {
 			s.logger.Error("validate OrderNumber: ", err)
 			c.AbortWithStatus(http.StatusUnprocessableEntity)
 			return

@@ -155,10 +155,10 @@ func (mr *MockStorageMockRecorder) GetWithdrawalsByUserID(arg0, arg1 interface{}
 }
 
 // GetWithdrawalsSumByUserID mocks base method.
-func (m *MockStorage) GetWithdrawalsSumByUserID(arg0 context.Context, arg1 uint) (int, error) {
+func (m *MockStorage) GetWithdrawalsSumByUserID(arg0 context.Context, arg1 uint) (float64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetWithdrawalsSumByUserID", arg0, arg1)
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

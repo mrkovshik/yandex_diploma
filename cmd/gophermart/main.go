@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS orders (
 );                                  
     CREATE TABLE IF NOT EXISTS withdrawals (
 		id serial4 NOT NULL,
-	amount int8 NOT NULL,
+	amount float4 NOT NULL,
 	processed_at timestamptz NOT NULL,
 	order_number varchar NOT NULL,
 	user_id int4 NOT NULL,
