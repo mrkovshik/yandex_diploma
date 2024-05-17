@@ -38,26 +38,26 @@ func Test_service_GetOrderScore(t *testing.T) {
 	s := NewAccrualService(mockServer.URL[7:])
 	tests := []struct {
 		name        string
-		orderNumber uint
+		orderNumber string
 		want        Response
 		err         error
 	}{
-		{"1_pos", 123, Response{
+		{"1_pos", "123", Response{
 			Order:   "123",
 			Status:  "PROCESSING",
 			Accrual: 0,
 		}, nil},
-		{"2_neg", 456, Response{
+		{"2_neg", "456", Response{
 			Order:   "",
 			Status:  "",
 			Accrual: 0,
 		}, apperrors.ErrNoSuchOrder},
-		{"3_neg", 789, Response{
+		{"3_neg", "789", Response{
 			Order:   "",
 			Status:  "",
 			Accrual: 0,
 		}, apperrors.ErrTooManyRetrials},
-		{"4_neg", 7819, Response{
+		{"4_neg", "7819", Response{
 			Order:   "",
 			Status:  "",
 			Accrual: 0,

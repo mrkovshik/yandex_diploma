@@ -16,13 +16,13 @@ func Test_getOrderNumberFromContext(t *testing.T) {
 	tests := []struct {
 		name    string
 		number  string
-		want    uint
+		want    string
 		errWant bool
 	}{
-		{"luhn_invalid", "1234", 0, true},
-		{"int_invalid", "d234", 0, true},
-		{"empty", "", 0, true},
-		{"valid", "12345678903", 12345678903, false},
+		{"luhn_invalid", "1234", "", true},
+		{"int_invalid", "d234", "", true},
+		{"empty", "", "", true},
+		{"valid", "12345678903", "12345678903", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
