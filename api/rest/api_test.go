@@ -143,7 +143,6 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 			Post(fmt.Sprintf("http://%v/api/user/login", cfg.RunAddress))
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode())
-		assert.NotEmpty(t, resp.Body())
 		// No login
 		resp, err = client.R().SetHeader("Content-Type", "application/json").
 			SetBody(fmt.Sprintf(`{"login":"%v", "password":"%v"}`, "", UserPass1)).

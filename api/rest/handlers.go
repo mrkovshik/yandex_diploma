@@ -34,7 +34,7 @@ func (s *restAPIServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 		if err != nil {
 			if errors.Is(err, apperrors.ErrUserAlreadyExists) {
 				s.logger.Error("Register: ", err)
-				c.IndentedJSON(http.StatusConflict, gin.H{"error": err.Error()})
+				c.AbortWithStatus(http.StatusConflict)
 				c.Abort()
 				return
 			}
@@ -43,7 +43,7 @@ func (s *restAPIServer) RegisterHandler(ctx context.Context) func(c *gin.Context
 			return
 		}
 		c.Header("Authorization", token)
-		c.IndentedJSON(http.StatusOK, gin.H{"message": "registration successful"})
+		c.AbortWithStatus(http.StatusOK)
 	}
 }
 
@@ -66,7 +66,7 @@ func (s *restAPIServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 		if err != nil {
 			if errors.Is(err, apperrors.ErrInvalidPassword) || errors.Is(err, sql.ErrNoRows) {
 				s.logger.Error("Login: ", err)
-				c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+				c.AbortWithStatus(http.StatusUnauthorized)
 				c.Abort()
 				return
 			}
@@ -76,7 +76,7 @@ func (s *restAPIServer) LoginHandler(ctx context.Context) func(c *gin.Context) {
 			return
 		}
 		c.Header("Authorization", token)
-		c.IndentedJSON(http.StatusOK, gin.H{"message": "login successful"})
+		c.AbortWithStatus(http.StatusOK)
 	}
 }
 
@@ -85,20 +85,20 @@ func (s *restAPIServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 		orderNumber, err := getOrderNumberFromContext(c)
 		if err != nil {
 			s.logger.Errorf("getOrderNumberFromContext: %v", err)
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "Invalid order number"})
+			c.AbortWithStatus(http.StatusUnprocessableEntity)
 			return
 		}
 		userID, err := getUserIDFromContext(c)
 		if err != nil {
 			s.logger.Errorf("getUserIDFromContext: %v", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		exist, err := s.service.UploadOrder(ctx, orderNumber, userID)
 		if err != nil {
 			if errors.Is(err, apperrors.ErrOrderIsUploadedByAnotherUser) {
 				s.logger.Error("UploadOrder", err)
-				c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
+				c.AbortWithStatus(http.StatusConflict)
 				return
 			}
 			s.logger.Error("UploadOrder", err)
@@ -106,11 +106,11 @@ func (s *restAPIServer) UploadOrderHandler(ctx context.Context) func(c *gin.Cont
 			return
 		}
 		if exist {
-			c.IndentedJSON(http.StatusOK, gin.H{"message": "order is already uploaded"})
+			c.AbortWithStatus(http.StatusOK)
 			c.Abort()
 			return
 		}
-		c.IndentedJSON(http.StatusAccepted, gin.H{"message": "order successfully uploaded"})
+		c.AbortWithStatus(http.StatusAccepted)
 	}
 }
 
@@ -119,7 +119,7 @@ func (s *restAPIServer) GetOrders(ctx context.Context) func(c *gin.Context) {
 		userID, err := getUserIDFromContext(c)
 		if err != nil {
 			s.logger.Errorf("getUserIDFromContext: %v", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		orders, err := s.service.GetUserOrders(ctx, userID)
@@ -129,7 +129,7 @@ func (s *restAPIServer) GetOrders(ctx context.Context) func(c *gin.Context) {
 			return
 		}
 		if len(orders) == 0 {
-			c.IndentedJSON(http.StatusNoContent, gin.H{"message": "no orders found"})
+			c.AbortWithStatus(http.StatusNoContent)
 			c.Abort()
 			return
 		}
@@ -142,7 +142,7 @@ func (s *restAPIServer) Withdraw(ctx context.Context) func(c *gin.Context) {
 		userID, err := getUserIDFromContext(c)
 		if err != nil {
 			s.logger.Errorf("getUserIDFromContext: %v", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		var withdrawRequest model.Withdrawal
@@ -171,7 +171,7 @@ func (s *restAPIServer) Withdraw(ctx context.Context) func(c *gin.Context) {
 		if err := s.service.Withdraw(ctx, withdrawal); err != nil {
 			if errors.Is(err, apperrors.ErrNotEnoughFunds) {
 				s.logger.Error("Withdraw", err)
-				c.IndentedJSON(http.StatusPaymentRequired, gin.H{"message": err.Error()})
+				c.AbortWithStatus(http.StatusPaymentRequired)
 				c.Abort()
 				return
 			}
@@ -179,7 +179,7 @@ func (s *restAPIServer) Withdraw(ctx context.Context) func(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		c.IndentedJSON(http.StatusOK, gin.H{"message": "withdrawal successfully processed"})
+		c.AbortWithStatus(http.StatusOK)
 	}
 }
 
@@ -188,7 +188,7 @@ func (s *restAPIServer) GetBalance(ctx context.Context) func(c *gin.Context) {
 		userID, err := getUserIDFromContext(c)
 		if err != nil {
 			s.logger.Errorf("getUserIDFromContext: %v", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		balance, err1 := s.service.GetBalance(ctx, userID)
@@ -206,7 +206,7 @@ func (s *restAPIServer) ListWithdrawals(ctx context.Context) func(c *gin.Context
 		userID, err := getUserIDFromContext(c)
 		if err != nil {
 			s.logger.Errorf("getUserIDFromContext: %v", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		withdrawals, err1 := s.service.ListUserWithdrawals(ctx, userID)
