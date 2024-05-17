@@ -5,15 +5,15 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/mrkovshik/yandex_diploma/api"
-	"github.com/mrkovshik/yandex_diploma/internal/model"
-	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/mrkovshik/yandex_diploma/api"
 	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/auth"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
+	"github.com/mrkovshik/yandex_diploma/internal/model"
+	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 )
 
 const workersQty = 2
@@ -162,7 +162,7 @@ func (s *basicService) GetBalance(ctx context.Context, userID uint) (model.GetBa
 	}, nil
 }
 
-func (s *basicService) LisUserWithdrawals(ctx context.Context, userID uint) ([]model.Withdrawal, error) {
+func (s *basicService) ListUserWithdrawals(ctx context.Context, userID uint) ([]model.Withdrawal, error) {
 
 	withdrawals, err := s.storage.GetWithdrawalsByUserID(ctx, userID)
 	if err != nil {

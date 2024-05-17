@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
-	mock_loyalty "github.com/mrkovshik/yandex_diploma/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 
@@ -20,6 +19,7 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 	"github.com/mrkovshik/yandex_diploma/internal/service/accrual/mock"
 	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
+	mock_loyalty "github.com/mrkovshik/yandex_diploma/mocks"
 )
 
 const (

@@ -6,8 +6,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	server "github.com/mrkovshik/yandex_diploma/api"
+
+	"github.com/jmoiron/sqlx"
 	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 )

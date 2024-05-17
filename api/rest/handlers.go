@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+
 	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 )
@@ -215,7 +216,7 @@ func (s *restAPIServer) ListWithdrawals(ctx context.Context) func(c *gin.Context
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid order number"})
 			return
 		}
-		withdrawals, err1 := s.service.LisUserWithdrawals(ctx, userID)
+		withdrawals, err1 := s.service.ListUserWithdrawals(ctx, userID)
 		if err1 != nil {
 			s.logger.Errorf("GetBalance: %v", err1)
 			c.AbortWithStatus(http.StatusInternalServerError)

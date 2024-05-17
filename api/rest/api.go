@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
 	"github.com/mrkovshik/yandex_diploma/api"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
-	"go.uber.org/zap"
 )
 
 type restAPIServer struct {

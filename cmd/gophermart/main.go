@@ -6,12 +6,12 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
-	"github.com/mrkovshik/yandex_diploma/internal/storage/postgres"
 	"go.uber.org/zap"
 
 	"github.com/mrkovshik/yandex_diploma/api/rest"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
+	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
+	"github.com/mrkovshik/yandex_diploma/internal/storage/postgres"
 )
 
 const accrualInterval = 5 * time.Second //TODO: move to config
