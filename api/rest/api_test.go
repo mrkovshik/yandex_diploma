@@ -24,9 +24,9 @@ import (
 
 const (
 	UserLoginNotExist  = "none"
-	orderExistingUser1 = uint(123456789049)
-	orderExistingUser2 = uint(123456789015)
-	orderNotExisting   = uint(123456789007)
+	orderExistingUser1 = "123456789049"
+	orderExistingUser2 = "123456789015"
+	orderNotExisting   = "123456789007"
 	UserLogin1         = "JohnDow"
 	UserPass1          = "qwerty"
 	userHashedPass1    = "$2a$10$XVc79vBoRda4wdsx/uqMd.obXNtIbOvGttqUsgfBC4YfvuoD0fvrG"
@@ -35,6 +35,15 @@ const (
 	withdrawalSumUser1 = 555
 	balanceUser1       = float64(1000)
 )
+
+type GetOrderResp struct {
+	ID          uint             `db:"id" json:"-"`
+	OrderNumber string           `db:"order_number" json:"number"`
+	UserID      uint             `db:"user_id" json:"-"`
+	Status      model.OrderState `db:"status" json:"status"`
+	UploadedAt  time.Time        `db:"uploaded_at" json:"uploaded_at"`
+	Accrual     int              `db:"accrual" json:"accrual,omitempty"`
+}
 
 var (
 	withdrawalUser1 = model.Withdrawal{
@@ -150,23 +159,23 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//Normal flow
 		resp, err := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
+			SetHeader("Authorization", authToken).
 			SetBody(fmt.Sprint(orderNotExisting)).
 			Post(url)
 		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode())
+		assert.Equal(t, http.StatusAccepted, resp.StatusCode())
 
 		//Already uploaded
 		resp1, err1 := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
+			SetHeader("Authorization", authToken).
 			SetBody(fmt.Sprint(orderExistingUser1)).
 			Post(url)
 		assert.NoError(t, err1)
-		assert.Equal(t, http.StatusAccepted, resp1.StatusCode())
+		assert.Equal(t, http.StatusOK, resp1.StatusCode())
 
 		//Already uploaded by another user
 		resp2, err2 := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
+			SetHeader("Authorization", authToken).
 			SetBody(fmt.Sprint(orderExistingUser2)).
 			Post(url)
 		assert.NoError(t, err2)
@@ -179,20 +188,20 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//Normal flow
 		resp, err := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
+			SetHeader("Authorization", authToken).
 			Get(url)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
-		orders := make([]model.Order, 3)
+		orders := make([]GetOrderResp, 3)
 		err1 := json.Unmarshal(resp.Body(), &orders)
 		assert.NoError(t, err1)
-		assert.Equal(t, orders[0].OrderNumber, orderExistingUser2)
+		assert.Equal(t, orders[0].OrderNumber, fmt.Sprint(orderExistingUser2))
 		assert.Equal(t, orders[1].Status, model.OrderStateProcessing)
 		assert.Equal(t, orders[2].Accrual, 1000)
 
 		//No data
 		resp2, err2 := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
+			SetHeader("Authorization", authToken).
 			Get(url)
 		assert.NoError(t, err2)
 		assert.Equal(t, http.StatusNoContent, resp2.StatusCode())
@@ -204,7 +213,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//Normal flow
 		resp, err := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
+			SetHeader("Authorization", authToken).
 			Get(url)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
@@ -222,7 +231,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 		//Normal flow
 		resp, err := client.R().SetHeader("Content-Type", "text/plain").
-			SetHeader("Authorization", fmt.Sprintf("Bearer %v", authToken)).
+			SetHeader("Authorization", authToken).
 			Get(url)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())

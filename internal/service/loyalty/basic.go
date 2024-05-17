@@ -67,7 +67,7 @@ func (s *basicService) Login(ctx context.Context, login, password string) (strin
 	return token, nil
 }
 
-func (s *basicService) UploadOrder(ctx context.Context, orderNumber, userID uint) (bool, error) {
+func (s *basicService) UploadOrder(ctx context.Context, orderNumber string, userID uint) (bool, error) {
 	order, err := s.storage.GetOrderByNumber(ctx, orderNumber)
 
 	if err != nil {
@@ -86,7 +86,7 @@ func (s *basicService) UploadOrder(ctx context.Context, orderNumber, userID uint
 	return true, nil
 }
 
-func (s *basicService) UpdateOrderAccrual(ctx context.Context, orderNumber uint) error {
+func (s *basicService) UpdateOrderAccrual(ctx context.Context, orderNumber string) error {
 	countingSrv := accrual.NewAccrualService(s.cfg.AccrualSystemAddress)
 	res, err := countingSrv.GetOrderAccrual(orderNumber)
 	if err != nil {
@@ -121,7 +121,7 @@ func (s *basicService) UpdatePendingOrders(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	jobs := make(chan uint, len(orders))
+	jobs := make(chan string, len(orders))
 	for w := 1; w <= workersQty; w++ {
 		go s.worker(ctx, w, jobs)
 	}
@@ -181,7 +181,7 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func (s *basicService) worker(ctx context.Context, workerID int, jobs <-chan uint) {
+func (s *basicService) worker(ctx context.Context, workerID int, jobs <-chan string) {
 	for orderNumber := range jobs {
 
 		if err := s.UpdateOrderAccrual(ctx, orderNumber); err != nil {

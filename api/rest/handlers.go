@@ -229,20 +229,18 @@ func (s *restAPIServer) ListWithdrawals(ctx context.Context) func(c *gin.Context
 		c.IndentedJSON(http.StatusOK, withdrawals)
 	}
 }
-func getOrderNumberFromContext(c *gin.Context) (uint, error) {
+func getOrderNumberFromContext(c *gin.Context) (string, error) {
 	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(c.Request.Body); err != nil {
-		return 0, err
+		return "", err
 	}
-	number, err1 := strconv.ParseUint(buf.String(), 10, 64)
-	if err1 != nil {
-		return 0, err1
-	}
+	//number, err1 := strconv.ParseUint(buf.String(), 10, 64)
+	number := buf.String()
 	err2 := validate.Var(number, "required,luhn_checksum")
 	if err2 != nil {
-		return 0, err2
+		return "", err2
 	}
-	return uint(number), nil
+	return number, nil
 }
 
 func getUserIDFromContext(c *gin.Context) (uint, error) {

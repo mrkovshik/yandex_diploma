@@ -17,7 +17,7 @@ type (
 		address string
 	}
 	Response struct {
-		Order   uint               `json:"order" uri:"order" binding:"required"`
+		Order   string             `json:"order" uri:"order" binding:"required"`
 		Status  model.AccrualState `json:"status"`
 		Accrual int                `json:"accrual"`
 	}
@@ -29,7 +29,7 @@ func NewAccrualService(address string) Service {
 	}
 }
 
-func (s service) GetOrderAccrual(orderNumber uint) (Response, error) {
+func (s service) GetOrderAccrual(orderNumber string) (Response, error) {
 	var orderResponse Response
 	serviceURL := fmt.Sprintf("http://%v/api/orders/%v", s.address, orderNumber)
 	client := resty.New()

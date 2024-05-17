@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	NumberForNotFound        = 1234567890
-	NumberForInternalErr     = 9876543210
-	NumberForTooManyRequests = 2468013579
+	NumberForNotFound        = "1234567890"
+	NumberForInternalErr     = "9876543210"
+	NumberForTooManyRequests = "2468013579"
 )
 
 var states = []model.AccrualState{

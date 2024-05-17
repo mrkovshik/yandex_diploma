@@ -21,7 +21,7 @@ func NewStorage(db *sqlx.DB) server.Storage {
 	return &Storage{db: db}
 }
 
-func (s *Storage) UploadOrder(ctx context.Context, userID, number uint) error {
+func (s *Storage) UploadOrder(ctx context.Context, userID uint, number string) error {
 	if _, err := s.db.ExecContext(ctx, "INSERT INTO orders (order_number, user_id, status, uploaded_at) VALUES ($1, $2, $3, $4)",
 		number, userID, model.OrderStateNew, time.Now().UTC()); err != nil {
 		return err
@@ -29,19 +29,19 @@ func (s *Storage) UploadOrder(ctx context.Context, userID, number uint) error {
 	return nil
 }
 
-func (s *Storage) SetOrderStatus(ctx context.Context, orderNumber uint, status model.OrderState) error {
+func (s *Storage) SetOrderStatus(ctx context.Context, orderNumber string, status model.OrderState) error {
 	if _, err := s.db.ExecContext(ctx, "UPDATE orders SET status = $1 WHERE order_number = $2;", status, orderNumber); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Storage) GetOrderByNumber(ctx context.Context, number uint) (order model.Order, err error) {
+func (s *Storage) GetOrderByNumber(ctx context.Context, number string) (order model.Order, err error) {
 	err = s.db.GetContext(ctx, &order, "SELECT * FROM orders WHERE order_number=$1", number)
 	return
 }
 
-func (s *Storage) FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber uint, amount int) error {
+func (s *Storage) FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber string, amount int) error {
 	tx, err := s.db.Beginx()
 	defer tx.Rollback() //nolint:all
 	if err != nil {
@@ -95,7 +95,7 @@ func (s *Storage) GetOrdersByUserID(ctx context.Context, userID uint) (orders []
 	return
 }
 
-func (s *Storage) GetPendingOrders(ctx context.Context) (orders []uint, err error) {
+func (s *Storage) GetPendingOrders(ctx context.Context) (orders []string, err error) {
 	err = s.db.SelectContext(ctx, &orders, "SELECT order_number FROM orders WHERE status IN ($1, $2)", model.OrderStateNew, model.OrderStateProcessing)
 	return
 }
@@ -136,7 +136,7 @@ func (s *Storage) GetWithdrawalsByUserID(ctx context.Context, userID uint) (with
 	return
 }
 
-func (s *Storage) updateUserBalanceByOrderNumberTx(ctx context.Context, orderNumber uint, amount int, tx *sqlx.Tx) error {
+func (s *Storage) updateUserBalanceByOrderNumberTx(ctx context.Context, orderNumber string, amount int, tx *sqlx.Tx) error {
 
 	user, err := s.getUserByOrderNumberTx(ctx, orderNumber, tx)
 	if err != nil {
@@ -170,7 +170,7 @@ func (s *Storage) updateUserBalanceByUserIDTx(ctx context.Context, userID uint, 
 	return nil
 }
 
-func (s *Storage) setOrderStatusTx(ctx context.Context, orderNumber uint, status model.OrderState, tx *sqlx.Tx) error {
+func (s *Storage) setOrderStatusTx(ctx context.Context, orderNumber string, status model.OrderState, tx *sqlx.Tx) error {
 	_, err := tx.ExecContext(ctx, "UPDATE orders SET status = $1 WHERE order_number = $2;", status, orderNumber)
 	if err != nil {
 		return err
@@ -179,13 +179,13 @@ func (s *Storage) setOrderStatusTx(ctx context.Context, orderNumber uint, status
 	return nil
 }
 
-func (s *Storage) setOrderAccrualTx(ctx context.Context, orderNumber uint, amount int, tx *sqlx.Tx) error {
+func (s *Storage) setOrderAccrualTx(ctx context.Context, orderNumber string, amount int, tx *sqlx.Tx) error {
 	if _, err := tx.ExecContext(ctx, "UPDATE orders SET accrual = $1,  status = $2 WHERE order_number = $3;", amount, model.OrderStateProcessed, orderNumber); err != nil {
 		return err
 	}
 	return nil
 }
-func (s *Storage) getUserByOrderNumberTx(ctx context.Context, id uint, tx *sqlx.Tx) (user model.User, err error) {
+func (s *Storage) getUserByOrderNumberTx(ctx context.Context, id string, tx *sqlx.Tx) (user model.User, err error) {
 	err = tx.GetContext(ctx, &user, "SELECT u.id, login, password, created_at, balance FROM users u join orders o on u.id = o.user_id WHERE o.order_number=$1", id)
 	return
 }

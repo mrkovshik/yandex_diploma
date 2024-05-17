@@ -18,7 +18,7 @@ func Test_service_GetOrderScore(t *testing.T) {
 		switch r.URL.Path {
 		case "/api/orders/123":
 			mockResp := Response{
-				Order:   123,
+				Order:   "123",
 				Status:  "PROCESSING",
 				Accrual: 0,
 			}
@@ -43,22 +43,22 @@ func Test_service_GetOrderScore(t *testing.T) {
 		err         error
 	}{
 		{"1_pos", 123, Response{
-			Order:   123,
+			Order:   "123",
 			Status:  "PROCESSING",
 			Accrual: 0,
 		}, nil},
 		{"2_neg", 456, Response{
-			Order:   0,
+			Order:   "",
 			Status:  "",
 			Accrual: 0,
 		}, apperrors.ErrNoSuchOrder},
 		{"3_neg", 789, Response{
-			Order:   0,
+			Order:   "",
 			Status:  "",
 			Accrual: 0,
 		}, apperrors.ErrTooManyRetrials},
 		{"4_neg", 7819, Response{
-			Order:   0,
+			Order:   "",
 			Status:  "",
 			Accrual: 0,
 		}, apperrors.ErrInvalidResponseCode},

@@ -9,8 +9,8 @@ import (
 type Service interface {
 	Register(ctx context.Context, login, password string) (string, error)
 	Login(ctx context.Context, login, password string) (string, error)
-	UploadOrder(ctx context.Context, number, userID uint) (bool, error)
-	UpdateOrderAccrual(ctx context.Context, orderNumber uint) error
+	UploadOrder(ctx context.Context, number string, userID uint) (bool, error)
+	UpdateOrderAccrual(ctx context.Context, orderNumber string) error
 	GetUserOrders(ctx context.Context, userID uint) ([]model.Order, error)
 	UpdatePendingOrders(ctx context.Context) error
 	Withdraw(ctx context.Context, withdrawal model.Withdrawal) error
