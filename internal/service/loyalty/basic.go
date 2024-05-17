@@ -13,7 +13,6 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/auth"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
-	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 )
 
 const workersQty = 2
@@ -22,13 +21,15 @@ type (
 	basicService struct {
 		storage api.Storage
 		cfg     *config.Config
+		accrual api.Service
 		Logger  *zap.SugaredLogger
 	}
 )
 
-func NewBasicService(storage api.Storage, cfg *config.Config, logger *zap.SugaredLogger) api.Service {
+func NewBasicService(storage api.Storage, accrual api.Service, cfg *config.Config, logger *zap.SugaredLogger) api.Service {
 	return &basicService{
 		storage: storage,
+		accrual: accrual,
 		cfg:     cfg,
 		Logger:  logger,
 	}
@@ -87,8 +88,7 @@ func (s *basicService) UploadOrder(ctx context.Context, orderNumber string, user
 }
 
 func (s *basicService) UpdateOrderAccrual(ctx context.Context, orderNumber string) error {
-	countingSrv := accrual.NewAccrualService(s.cfg.AccrualSystemAddress)
-	res, err := countingSrv.GetOrderAccrual(orderNumber)
+	res, err := s.accrual.GetOrderAccrual(orderNumber)
 	if err != nil {
 		return err
 	}

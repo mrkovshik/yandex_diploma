@@ -6,6 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 	"go.uber.org/zap"
 
 	"github.com/mrkovshik/yandex_diploma/api/rest"
@@ -61,8 +62,10 @@ func main() {
 		sugar.Fatal("sql.Open", err)
 	}
 	db.MustExec(schema)
+	accrualService := accrual.NewAccrualService(cfg.AccrualSystemAddress)
 	storage := postgres.NewStorage(db)
-	service := loyalty.NewBasicService(storage, cfg, sugar)
+	service := loyalty.NewBasicService(storage, accrualService, cfg, sugar)
+
 	srv := rest.NewRestAPIServer(service, storage, cfg, sugar)
 
 	accrualTicker := time.NewTicker(accrualInterval)

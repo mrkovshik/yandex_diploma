@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
+	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 
@@ -82,7 +83,8 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockStorage := defineStorage(ctx, ctrl)
-	service := loyalty.NewBasicService(mockStorage, cfg, sugar)
+	accrualService := accrual.NewAccrualService(cfg.AccrualSystemAddress)
+	service := loyalty.NewBasicService(mockStorage, accrualService, cfg, sugar)
 	srv := NewRestAPIServer(service, mockStorage, cfg, sugar)
 	go func() {
 		if err := srv.RunServer(ctx); err != nil {

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-
+	"github.com/mrkovshik/yandex_diploma/api"
 	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 )
@@ -23,7 +23,7 @@ type (
 	}
 )
 
-func NewAccrualService(address string) Service {
+func NewAccrualService(address string) api.Service {
 	return service{
 		address: address,
 	}
