@@ -1,4 +1,4 @@
-package mock_api
+package accrual
 
 import (
 	"log"

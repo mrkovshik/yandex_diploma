@@ -12,6 +12,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
+	accrual2 "github.com/mrkovshik/yandex_diploma/mocks/accrual"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -113,7 +114,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 			return
 		}
 	}()
-	go mock_loyalty.Run(cfg)
+	go accrual2.Run(cfg)
 
 	t.Run("register", func(t *testing.T) {
 		client := resty.New()

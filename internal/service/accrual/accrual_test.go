@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/mrkovshik/yandex_diploma/internal/model"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
@@ -17,7 +18,7 @@ func Test_service_GetOrderScore(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/api/orders/123":
-			mockResp := Response{
+			mockResp := model.AccrualResponse{
 				Order:   "123",
 				Status:  "PROCESSING",
 				Accrual: 0,
@@ -39,25 +40,25 @@ func Test_service_GetOrderScore(t *testing.T) {
 	tests := []struct {
 		name        string
 		orderNumber string
-		want        Response
+		want        model.AccrualResponse
 		err         error
 	}{
-		{"1_pos", "123", Response{
+		{"1_pos", "123", model.AccrualResponse{
 			Order:   "123",
 			Status:  "PROCESSING",
 			Accrual: 0,
 		}, nil},
-		{"2_neg", "456", Response{
+		{"2_neg", "456", model.AccrualResponse{
 			Order:   "",
 			Status:  "",
 			Accrual: 0,
 		}, apperrors.ErrNoSuchOrder},
-		{"3_neg", "789", Response{
+		{"3_neg", "789", model.AccrualResponse{
 			Order:   "",
 			Status:  "",
 			Accrual: 0,
 		}, apperrors.ErrTooManyRetrials},
-		{"4_neg", "7819", Response{
+		{"4_neg", "7819", model.AccrualResponse{
 			Order:   "",
 			Status:  "",
 			Accrual: 0,
