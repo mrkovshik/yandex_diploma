@@ -28,10 +28,10 @@ func (s service) GetOrderAccrual(orderNumber string) (model.AccrualResponse, err
 	client := resty.New()
 	client.SetRetryCount(3).
 		SetRetryWaitTime(60 * time.Second).
-		SetRetryMaxWaitTime(90 * time.Second)
-	//SetRetryAfter(func(client *resty.Client, resp *resty.Response) (time.Duration, error) {
-	//	return 0, apperrors.ErrTooManyRetrials
-	//}		)
+		SetRetryMaxWaitTime(90 * time.Second).
+		SetRetryAfter(func(client *resty.Client, resp *resty.Response) (time.Duration, error) {
+			return 60 * time.Second, apperrors.ErrTooManyRetrials
+		})
 	client.AddRetryCondition(
 		func(r *resty.Response, err error) bool {
 			return r.StatusCode() == http.StatusTooManyRequests
