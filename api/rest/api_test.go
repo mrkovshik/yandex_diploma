@@ -14,6 +14,7 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
@@ -65,12 +66,34 @@ var (
 
 func Test_restAPIServer_RunServer(t *testing.T) {
 	var authToken string
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		logger.Fatal("zap.NewDevelopment",
-			zap.Error(err))
+	loggerConfig := zap.Config{
+		Level:       zap.NewAtomicLevelAt(zapcore.InfoLevel),
+		Development: false,
+		Encoding:    "json", // You can use "console" for a more readable format
+		EncoderConfig: zapcore.EncoderConfig{
+			TimeKey:        "timestamp",
+			LevelKey:       "level",
+			NameKey:        "logger",
+			CallerKey:      "", // Disable caller key to remove caller information
+			MessageKey:     "message",
+			StacktraceKey:  "", // Disable stacktrace key to remove stack traces
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.LowercaseLevelEncoder,
+			EncodeTime:     zapcore.ISO8601TimeEncoder,
+			EncodeDuration: zapcore.StringDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		},
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
 	}
-	defer logger.Sync() //nolint:all
+
+	// Build the logger
+	logger, err := loggerConfig.Build()
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
+
 	sugar := logger.Sugar()
 
 	ctx := context.Background()

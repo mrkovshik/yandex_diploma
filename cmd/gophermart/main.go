@@ -8,6 +8,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/mrkovshik/yandex_diploma/api/rest"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
@@ -45,12 +46,32 @@ CREATE TABLE IF NOT EXISTS orders (
 )`
 
 func main() {
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		logger.Fatal("zap.NewDevelopment",
-			zap.Error(err))
+	loggerConfig := zap.Config{
+		Level:       zap.NewAtomicLevelAt(zapcore.InfoLevel),
+		Development: false,
+		Encoding:    "json",
+		EncoderConfig: zapcore.EncoderConfig{
+			TimeKey:        "timestamp",
+			LevelKey:       "level",
+			NameKey:        "logger",
+			CallerKey:      "",
+			MessageKey:     "message",
+			StacktraceKey:  "",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.LowercaseLevelEncoder,
+			EncodeTime:     zapcore.ISO8601TimeEncoder,
+			EncodeDuration: zapcore.StringDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		},
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
 	}
-	defer logger.Sync() //nolint:all
+
+	logger, err := loggerConfig.Build()
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
 	sugar := logger.Sugar()
 	ctx := context.Background()
 	cfg, err := config.GetConfigs()
