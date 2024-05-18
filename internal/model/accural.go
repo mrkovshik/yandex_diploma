@@ -8,3 +8,9 @@ const (
 	AccrualStateInvalid    = AccrualState("INVALID")
 	AccrualStateProcessed  = AccrualState("PROCESSED")
 )
+
+type AccrualResponse struct {
+	Order   string       `json:"order" uri:"order" binding:"required"`
+	Status  AccrualState `json:"status"`
+	Accrual int          `json:"accrual"`
+}

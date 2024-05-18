@@ -7,30 +7,23 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/mrkovshik/yandex_diploma/api"
 	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
+	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 )
 
-type (
-	service struct {
-		address string
-	}
-	Response struct {
-		Order   string             `json:"order" uri:"order" binding:"required"`
-		Status  model.AccrualState `json:"status"`
-		Accrual int                `json:"accrual"`
-	}
-)
+type service struct {
+	address string
+}
 
-func NewAccrualService(address string) api.Service {
+func NewAccrualService(address string) loyalty.AccrualService {
 	return service{
 		address: address,
 	}
 }
 
-func (s service) GetOrderAccrual(orderNumber string) (Response, error) {
-	var orderResponse Response
+func (s service) GetOrderAccrual(orderNumber string) (model.AccrualResponse, error) {
+	var orderResponse model.AccrualResponse
 	serviceURL := fmt.Sprintf("http://%v/api/orders/%v", s.address, orderNumber)
 	client := resty.New()
 	client.SetRetryCount(3).
@@ -46,16 +39,16 @@ func (s service) GetOrderAccrual(orderNumber string) (Response, error) {
 	)
 	resp, err := client.R().Get(serviceURL)
 	if err != nil {
-		return Response{}, err
+		return model.AccrualResponse{}, err
 	}
 	if resp.StatusCode() != http.StatusOK {
 		if resp.StatusCode() == http.StatusNoContent {
-			return Response{}, apperrors.ErrNoSuchOrder
+			return model.AccrualResponse{}, apperrors.ErrNoSuchOrder
 		}
-		return Response{}, apperrors.ErrInvalidResponseCode
+		return model.AccrualResponse{}, apperrors.ErrInvalidResponseCode
 	}
 	if err := json.Unmarshal(resp.Body(), &orderResponse); err != nil {
-		return Response{}, err
+		return model.AccrualResponse{}, err
 	}
 	return orderResponse, nil
 }

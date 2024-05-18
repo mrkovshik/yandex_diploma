@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/mrkovshik/yandex_diploma/internal/service"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
@@ -19,14 +20,14 @@ const workersQty = 2
 
 type (
 	basicService struct {
-		storage api.Storage
+		storage service.Storage
 		cfg     *config.Config
-		accrual api.Service
+		accrual AccrualService
 		Logger  *zap.SugaredLogger
 	}
 )
 
-func NewBasicService(storage api.Storage, accrual api.Service, cfg *config.Config, logger *zap.SugaredLogger) api.Service {
+func NewBasicService(storage service.Storage, accrual AccrualService, cfg *config.Config, logger *zap.SugaredLogger) api.Service {
 	return &basicService{
 		storage: storage,
 		accrual: accrual,

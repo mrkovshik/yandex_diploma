@@ -18,7 +18,6 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
-	"github.com/mrkovshik/yandex_diploma/internal/service/accrual/mock"
 	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 	mock_loyalty "github.com/mrkovshik/yandex_diploma/mocks"
 )
@@ -91,7 +90,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 			return
 		}
 	}()
-	go mock.Run(cfg)
+	go mock_loyalty.Run(cfg)
 
 	t.Run("register", func(t *testing.T) {
 		client := resty.New()

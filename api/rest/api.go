@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mrkovshik/yandex_diploma/internal/service"
 	"go.uber.org/zap"
 
 	"github.com/mrkovshik/yandex_diploma/api"
@@ -12,12 +13,12 @@ import (
 
 type restAPIServer struct {
 	service api.Service
-	storage api.Storage
+	storage service.Storage
 	cfg     *config.Config
 	logger  *zap.SugaredLogger
 }
 
-func NewRestAPIServer(service api.Service, storage api.Storage, cfg *config.Config, logger *zap.SugaredLogger) api.Server {
+func NewRestAPIServer(service api.Service, storage service.Storage, cfg *config.Config, logger *zap.SugaredLogger) api.Server {
 	return &restAPIServer{
 		service: service,
 		storage: storage,

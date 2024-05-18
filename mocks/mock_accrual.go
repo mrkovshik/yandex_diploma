@@ -1,4 +1,4 @@
-package mock
+package mock_api
 
 import (
 	"log"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
-	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 )
 
 const (
@@ -29,7 +28,7 @@ var states = []model.AccrualState{
 func Run(cfg *config.Config) {
 	r := gin.Default()
 	r.GET("api/orders/:order", func(c *gin.Context) {
-		var resp accrual.Response
+		var resp model.AccrualResponse
 		if err := c.ShouldBindUri(&resp); err != nil {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
