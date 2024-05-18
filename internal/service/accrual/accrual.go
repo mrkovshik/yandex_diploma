@@ -27,11 +27,11 @@ func (s service) GetOrderAccrual(orderNumber string) (model.AccrualResponse, err
 	serviceURL := fmt.Sprintf("http://%v/api/orders/%v", s.address, orderNumber)
 	client := resty.New()
 	client.SetRetryCount(3).
-		SetRetryWaitTime(5 * time.Second).
-		SetRetryMaxWaitTime(20 * time.Second).
-		SetRetryAfter(func(client *resty.Client, resp *resty.Response) (time.Duration, error) {
-			return 0, apperrors.ErrTooManyRetrials
-		})
+		SetRetryWaitTime(60 * time.Second).
+		SetRetryMaxWaitTime(90 * time.Second)
+	//SetRetryAfter(func(client *resty.Client, resp *resty.Response) (time.Duration, error) {
+	//	return 0, apperrors.ErrTooManyRetrials
+	//}		)
 	client.AddRetryCondition(
 		func(r *resty.Response, err error) bool {
 			return r.StatusCode() == http.StatusTooManyRequests
