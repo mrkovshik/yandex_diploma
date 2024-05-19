@@ -6,12 +6,12 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/mrkovshik/yandex_diploma/api/rest"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
+	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 	"github.com/mrkovshik/yandex_diploma/internal/storage/postgres"
 )

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/mrkovshik/yandex_diploma/internal/service"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/auth"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
+	"github.com/mrkovshik/yandex_diploma/internal/service"
 )
 
 const workersQty = 2

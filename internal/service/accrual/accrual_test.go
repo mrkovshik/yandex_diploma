@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mrkovshik/yandex_diploma/internal/model"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
+	"github.com/mrkovshik/yandex_diploma/internal/model"
 )
 
 func Test_service_GetOrderScore(t *testing.T) {

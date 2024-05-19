@@ -11,8 +11,6 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
-	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
-	accrual2 "github.com/mrkovshik/yandex_diploma/mocks/accrual"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -20,8 +18,10 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/apperrors"
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
+	"github.com/mrkovshik/yandex_diploma/internal/service/accrual"
 	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
 	mock_service "github.com/mrkovshik/yandex_diploma/mocks"
+	accrualMock "github.com/mrkovshik/yandex_diploma/mocks/accrual"
 )
 
 const (
@@ -115,7 +115,7 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 		}
 	}()
 
-	go accrual2.Run(cfg)
+	go accrualMock.Run(cfg)
 
 	time.Sleep(2 * time.Second)
 	t.Run("register", func(t *testing.T) {
