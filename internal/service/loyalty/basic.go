@@ -186,7 +186,7 @@ func (s *basicService) worker(ctx context.Context, workerID int, jobs <-chan str
 	for orderNumber := range jobs {
 
 		if err := s.UpdateOrderAccrual(ctx, orderNumber); err != nil {
-			s.Logger.Errorf("failed to update order #%v by worker #%v", orderNumber, workerID)
+			s.Logger.Errorf("failed to update order #%v by worker #%v: %v", orderNumber, workerID, err)
 			return
 		}
 	}

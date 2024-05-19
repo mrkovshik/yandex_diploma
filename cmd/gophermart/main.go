@@ -16,7 +16,7 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/storage/postgres"
 )
 
-const accrualInterval = 60 * time.Second //TODO: move to config
+const accrualInterval = 10 * time.Second //TODO: move to config
 var schema = `
 CREATE TABLE IF NOT EXISTS users (
 	id serial4 NOT NULL,
