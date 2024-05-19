@@ -36,5 +36,5 @@ func (s *restAPIServer) RunServer(ctx context.Context) error {
 	userSubRouter.POST("/balance/withdraw", s.Auth(ctx), s.Withdraw(ctx))
 	userSubRouter.GET("/balance", s.Auth(ctx), s.GetBalance(ctx))
 	userSubRouter.GET("/withdrawals", s.Auth(ctx), s.ListWithdrawals(ctx))
-	return router.Run("localhost:8080")
+	return router.Run(s.cfg.RunAddress)
 }
