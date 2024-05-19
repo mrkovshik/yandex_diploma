@@ -24,7 +24,7 @@ func NewAccrualService(address string) loyalty.AccrualService {
 
 func (s service) GetOrderAccrual(orderNumber string) (model.AccrualResponse, error) {
 	var orderResponse model.AccrualResponse
-	serviceURL := fmt.Sprintf("http://%v/api/orders/%v", s.address, orderNumber)
+	serviceURL := fmt.Sprintf("%v/api/orders/%v", s.address, orderNumber)
 	client := resty.New()
 	client.SetRetryCount(3).
 		SetRetryWaitTime(60 * time.Second).
@@ -45,7 +45,7 @@ func (s service) GetOrderAccrual(orderNumber string) (model.AccrualResponse, err
 		if resp.StatusCode() == http.StatusNoContent {
 			return model.AccrualResponse{}, apperrors.ErrNoSuchOrder
 		}
-		return model.AccrualResponse{}, apperrors.ErrInvalidResponseCode
+		return model.AccrualResponse{}, fmt.Errorf("status code: %v", resp.StatusCode())
 	}
 	if err := json.Unmarshal(resp.Body(), &orderResponse); err != nil {
 		return model.AccrualResponse{}, err
