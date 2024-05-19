@@ -125,7 +125,7 @@ func (s *Storage) GetWithdrawalsSumByUserID(ctx context.Context, userID uint) (f
 		return 0, err
 	}
 	if len(sums) == 0 {
-		return 0, sql.ErrNoRows
+		return 0, nil
 	}
 
 	return sums[0], nil
