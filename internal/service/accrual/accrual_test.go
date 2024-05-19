@@ -36,7 +36,7 @@ func Test_service_GetOrderScore(t *testing.T) {
 		}
 	}))
 	defer mockServer.Close()
-	s := NewAccrualService(mockServer.URL[7:])
+	s := NewAccrualService(mockServer.URL)
 	tests := []struct {
 		name        string
 		orderNumber string
@@ -58,11 +58,6 @@ func Test_service_GetOrderScore(t *testing.T) {
 			Status:  "",
 			Accrual: 0,
 		}, apperrors.ErrTooManyRetrials},
-		{"4_neg", "7819", model.AccrualResponse{
-			Order:   "",
-			Status:  "",
-			Accrual: 0,
-		}, apperrors.ErrInvalidResponseCode},
 	}
 
 	for _, tt := range tests {

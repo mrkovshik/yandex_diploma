@@ -21,7 +21,7 @@ import (
 	"github.com/mrkovshik/yandex_diploma/internal/config"
 	"github.com/mrkovshik/yandex_diploma/internal/model"
 	"github.com/mrkovshik/yandex_diploma/internal/service/loyalty"
-	mock_loyalty "github.com/mrkovshik/yandex_diploma/mocks"
+	mock_service "github.com/mrkovshik/yandex_diploma/mocks"
 )
 
 const (
@@ -114,8 +114,10 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 			return
 		}
 	}()
+
 	go accrual2.Run(cfg)
 
+	time.Sleep(2 * time.Second)
 	t.Run("register", func(t *testing.T) {
 		client := resty.New()
 
@@ -269,8 +271,8 @@ func Test_restAPIServer_RunServer(t *testing.T) {
 
 }
 
-func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_loyalty.MockStorage {
-	storage := mock_loyalty.NewMockStorage(ctrl)
+func defineStorage(ctx context.Context, ctrl *gomock.Controller) *mock_service.MockStorage {
+	storage := mock_service.NewMockStorage(ctrl)
 	storage.EXPECT().GetUserByLogin(ctx, UserLogin1).Return(model.User{
 		ID:        UserID1,
 		Login:     UserLogin1,

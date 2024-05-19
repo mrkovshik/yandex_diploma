@@ -47,7 +47,7 @@ func Run(cfg *config.Config) {
 			rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
 			resp.Status = states[rand.Intn(len(states))]
 			if resp.Status == model.AccrualStateProcessed {
-				resp.Accrual = rand.Intn(10000)
+				resp.Accrual = float64(rand.Intn(10000)) + rand.Float64()
 			}
 			c.JSON(http.StatusOK, resp)
 		}

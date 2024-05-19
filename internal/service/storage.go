@@ -12,7 +12,7 @@ type Storage interface {
 	GetUserByID(ctx context.Context, id uint) (user model.User, err error)
 	UploadOrder(ctx context.Context, userID uint, orderNumber string) error
 	GetOrderByNumber(ctx context.Context, orderNumber string) (order model.Order, err error)
-	FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber string, amount int) error
+	FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber string, amount float64) error
 	SetOrderStatus(ctx context.Context, orderNumber string, status model.OrderState) error
 	GetOrdersByUserID(ctx context.Context, userID uint) ([]model.Order, error)
 	GetPendingOrders(ctx context.Context) (orders []string, err error)

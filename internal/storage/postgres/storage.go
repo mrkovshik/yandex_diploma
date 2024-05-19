@@ -41,7 +41,7 @@ func (s *Storage) GetOrderByNumber(ctx context.Context, number string) (order mo
 	return
 }
 
-func (s *Storage) FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber string, amount int) error {
+func (s *Storage) FinalizeOrderAndUpdateBalance(ctx context.Context, orderNumber string, amount float64) error {
 	tx, err := s.db.Beginx()
 	defer tx.Rollback() //nolint:all
 	if err != nil {
@@ -136,7 +136,7 @@ func (s *Storage) GetWithdrawalsByUserID(ctx context.Context, userID uint) (with
 	return
 }
 
-func (s *Storage) updateUserBalanceByOrderNumberTx(ctx context.Context, orderNumber string, amount int, tx *sqlx.Tx) error {
+func (s *Storage) updateUserBalanceByOrderNumberTx(ctx context.Context, orderNumber string, amount float64, tx *sqlx.Tx) error {
 
 	user, err := s.getUserByOrderNumberTx(ctx, orderNumber, tx)
 	if err != nil {
@@ -179,7 +179,7 @@ func (s *Storage) setOrderStatusTx(ctx context.Context, orderNumber string, stat
 	return nil
 }
 
-func (s *Storage) setOrderAccrualTx(ctx context.Context, orderNumber string, amount int, tx *sqlx.Tx) error {
+func (s *Storage) setOrderAccrualTx(ctx context.Context, orderNumber string, amount float64, tx *sqlx.Tx) error {
 	if _, err := tx.ExecContext(ctx, "UPDATE orders SET accrual = $1,  status = $2 WHERE order_number = $3;", amount, model.OrderStateProcessed, orderNumber); err != nil {
 		return err
 	}
