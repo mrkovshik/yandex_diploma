@@ -29,10 +29,10 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS orders (
 	id serial4 NOT NULL,
 	order_number varchar NOT NULL,
-	user_id float4 NOT NULL,
+	user_id int4 NOT NULL,
 	uploaded_at timestamptz NOT NULL,
 	status varchar DEFAULT 'NEW'::character varying NOT NULL,
-	accrual int4 DEFAULT 0 NOT NULL,
+	accrual float4 DEFAULT 0 NOT NULL,
 	CONSTRAINT orders_pk PRIMARY KEY (id),
 	CONSTRAINT orders_unique UNIQUE (order_number)
 );                                  
