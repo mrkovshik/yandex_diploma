@@ -29,12 +29,20 @@ func NewRestAPIServer(service api.Service, storage service.Storage, cfg *config.
 func (s *restAPIServer) RunServer(ctx context.Context) error {
 	router := gin.Default()
 	userSubRouter := router.Group("/api/user")
-	userSubRouter.POST("/register", s.RegisterHandler(ctx))
-	userSubRouter.POST("/login", s.LoginHandler(ctx))
-	userSubRouter.POST("/orders", s.Auth(ctx), s.UploadOrderHandler(ctx))
-	userSubRouter.GET("/orders", s.Auth(ctx), s.GetOrders(ctx))
-	userSubRouter.POST("/balance/withdraw", s.Auth(ctx), s.Withdraw(ctx))
-	userSubRouter.GET("/balance", s.Auth(ctx), s.GetBalance(ctx))
-	userSubRouter.GET("/withdrawals", s.Auth(ctx), s.ListWithdrawals(ctx))
+	{
+		userSubRouter.POST("/register", s.RegisterHandler(ctx))
+		userSubRouter.POST("/login", s.LoginHandler(ctx))
+	}
+
+	authGroup := userSubRouter.Group("")
+	authGroup.Use(s.Auth(ctx))
+	{
+		authGroup.POST("/orders", s.UploadOrderHandler(ctx))
+		authGroup.GET("/orders", s.GetOrders(ctx))
+		authGroup.POST("/balance/withdraw", s.Withdraw(ctx))
+		authGroup.GET("/balance", s.GetBalance(ctx))
+		authGroup.GET("/withdrawals", s.ListWithdrawals(ctx))
+	}
+
 	return router.Run(s.cfg.RunAddress)
 }
